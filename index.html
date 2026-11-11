@@ -3,6 +3,47 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script>
+      (function () {
+        try {
+          var nativeFetch = window.fetch ? window.fetch.bind(window) : undefined;
+          var desc =
+            Object.getOwnPropertyDescriptor(window, 'fetch') ||
+            Object.getOwnPropertyDescriptor(Window.prototype, 'fetch');
+          if (nativeFetch && (!desc || desc.configurable)) {
+            Object.defineProperty(window, 'fetch', {
+              configurable: true,
+              enumerable: true,
+              get: function () {
+                return nativeFetch;
+              },
+              set: function (nextFetch) {
+                if (typeof nextFetch === 'function') {
+                  nativeFetch = nextFetch;
+                }
+              },
+            });
+          }
+        } catch (_) {}
+
+        window.addEventListener(
+          'error',
+          function (event) {
+            var isExtensionError =
+              typeof event.filename === 'string' &&
+              event.filename.indexOf('chrome-extension://') === 0;
+            var isFetchSetterError =
+              typeof event.message === 'string' &&
+              event.message.indexOf('Cannot set property fetch of #<Window>') !== -1;
+            if (isExtensionError || isFetchSetterError) {
+              event.stopImmediatePropagation();
+              event.preventDefault();
+            }
+          },
+          true
+        );
+      })();
+    </script>
     <title>AlgorOhm Robotics — Neural Compute × Physical Actuation</title>
     <meta
       name="description"
