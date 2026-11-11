@@ -8,11 +8,14 @@
 }
 
 @layer base {
-  html {
+  html,
+  body {
     font-family: var(--font-sans);
     background-color: #07090E;
     color: #F1F5F9;
     color-scheme: dark;
+    overflow-x: hidden;
+    -webkit-tap-highlight-color: transparent;
   }
 
   h1, h2, h3, h4, .font-display {
@@ -34,6 +37,7 @@
 /* Custom Range Input Styling for High-Precision Telemetry Controls */
 input[type="range"] {
   accent-color: #06b6d4;
+  min-height: 28px;
 }
 
 input[type="range"]:focus-visible {

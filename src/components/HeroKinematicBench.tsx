@@ -50,7 +50,7 @@ export const HeroKinematicBench: React.FC = () => {
     if (!ctx) return;
 
     let animationFrameId = 0;
-    let startTime = performance.now();
+    const startTime = performance.now();
 
     const prefersReducedMotion =
       typeof window !== 'undefined' &&
@@ -70,6 +70,7 @@ export const HeroKinematicBench: React.FC = () => {
       ctx.scale(dpr, dpr);
       const W = rect.width;
       const H = rect.height;
+      const isCompact = W < 440;
 
       // Clear background
       ctx.fillStyle = '#070A12';
@@ -78,7 +79,7 @@ export const HeroKinematicBench: React.FC = () => {
       // Draw subtle polar & cartesian coordinate grid
       ctx.strokeStyle = 'rgba(34, 211, 238, 0.06)';
       ctx.lineWidth = 1;
-      const gridStep = 32;
+      const gridStep = isCompact ? 24 : 32;
       for (let x = 0; x < W; x += gridStep) {
         ctx.beginPath();
         ctx.moveTo(x, 0);
@@ -93,8 +94,8 @@ export const HeroKinematicBench: React.FC = () => {
       }
 
       // Base pedestal origin
-      const baseX = W * 0.23;
-      const baseY = H * 0.78;
+      const baseX = W * (isCompact ? 0.2 : 0.23);
+      const baseY = H * (isCompact ? 0.8 : 0.78);
 
       // Draw workspace reach envelope arcs
       ctx.strokeStyle = 'rgba(34, 211, 238, 0.14)';
@@ -131,7 +132,7 @@ export const HeroKinematicBench: React.FC = () => {
 
       const breathe =
         simRunning && !prefersReducedMotion ? Math.sin(elapsed * 2.2) * 3.2 : 0;
-      const targetX = W * (0.28 + (phys.currX / 100) * 0.56);
+      const targetX = W * (0.26 + (phys.currX / 100) * 0.56);
       const targetY = H * (0.82 - (phys.currY / 100) * 0.64) + breathe;
 
       // Record end-effector trajectory ribbon
@@ -141,8 +142,8 @@ export const HeroKinematicBench: React.FC = () => {
       }
 
       // 2-Link + Wrist Analytical Inverse Kinematics
-      const L1 = Math.min(W, H) * 0.33;
-      const L2 = Math.min(W, H) * 0.29;
+      const L1 = Math.min(W, H) * (isCompact ? 0.31 : 0.33);
+      const L2 = Math.min(W, H) * (isCompact ? 0.27 : 0.29);
       const dx = targetX - baseX;
       const dy = targetY - baseY;
       const dist = Math.min(Math.hypot(dx, dy), L1 + L2 - 4);
@@ -163,28 +164,33 @@ export const HeroKinematicBench: React.FC = () => {
 
       // Mode-specific visual overlays
       if (simMode === 'lidar') {
-        // LiDAR scan cone from wrist sensor
+        const scanRadius = isCompact ? 120 : 170;
         const scanAngle =
           (simRunning && !prefersReducedMotion ? elapsed * 1.8 : 0.8) % (Math.PI * 2);
-        const grad = ctx.createRadialGradient(wristX, wristY, 8, wristX, wristY, 170);
+        const grad = ctx.createRadialGradient(
+          wristX,
+          wristY,
+          8,
+          wristX,
+          wristY,
+          scanRadius
+        );
         grad.addColorStop(0, 'rgba(34, 211, 238, 0.28)');
         grad.addColorStop(1, 'rgba(34, 211, 238, 0)');
         ctx.fillStyle = grad;
         ctx.beginPath();
         ctx.moveTo(wristX, wristY);
-        ctx.arc(wristX, wristY, 170, scanAngle - 0.45, scanAngle + 0.45);
+        ctx.arc(wristX, wristY, scanRadius, scanAngle - 0.45, scanAngle + 0.45);
         ctx.closePath();
         ctx.fill();
 
-        // Synthetic voxel point cloud hits
-        for (let i = 0; i < 28; i++) {
-          const px = W * 0.68 + Math.cos(i * 1.7 + elapsed * 0.4) * 55;
-          const py = H * 0.45 + Math.sin(i * 2.3) * 65;
+        for (let i = 0; i < 24; i++) {
+          const px = W * 0.68 + Math.cos(i * 1.7 + elapsed * 0.4) * (isCompact ? 38 : 55);
+          const py = H * 0.45 + Math.sin(i * 2.3) * (isCompact ? 45 : 65);
           ctx.fillStyle = i % 3 === 0 ? '#F59E0B' : '#22D3EE';
           ctx.fillRect(px, py, 3, 3);
         }
       } else if (simMode === 'neural') {
-        // Neural trajectory spline proposals
         for (let k = -2; k <= 2; k++) {
           ctx.strokeStyle =
             k === 0 ? 'rgba(34, 211, 238, 0.65)' : 'rgba(148, 163, 184, 0.18)';
@@ -192,8 +198,8 @@ export const HeroKinematicBench: React.FC = () => {
           ctx.beginPath();
           ctx.moveTo(baseX, baseY);
           ctx.quadraticCurveTo(
-            elbowX + k * 22,
-            elbowY - Math.abs(k) * 18,
+            elbowX + k * 20,
+            elbowY - Math.abs(k) * 16,
             wristX,
             wristY
           );
@@ -218,14 +224,16 @@ export const HeroKinematicBench: React.FC = () => {
       ctx.fillStyle = '#1E293B';
       ctx.strokeStyle = '#475569';
       ctx.lineWidth = 2;
+      const pedW = isCompact ? 52 : 68;
+      const pedH = isCompact ? 18 : 22;
       ctx.beginPath();
-      ctx.roundRect(baseX - 34, baseY, 68, 22, 4);
+      ctx.roundRect(baseX - pedW / 2, baseY, pedW, pedH, 4);
       ctx.fill();
       ctx.stroke();
 
       // Draw Link 1 (Base to Elbow)
       ctx.strokeStyle = '#38BDF8';
-      ctx.lineWidth = 10;
+      ctx.lineWidth = isCompact ? 8 : 10;
       ctx.lineCap = 'round';
       ctx.beginPath();
       ctx.moveTo(baseX, baseY);
@@ -234,7 +242,7 @@ export const HeroKinematicBench: React.FC = () => {
 
       // Draw Link 2 (Elbow to Wrist)
       ctx.strokeStyle = '#E2E8F0';
-      ctx.lineWidth = 7;
+      ctx.lineWidth = isCompact ? 5.5 : 7;
       ctx.beginPath();
       ctx.moveTo(elbowX, elbowY);
       ctx.lineTo(wristX, wristY);
@@ -242,9 +250,27 @@ export const HeroKinematicBench: React.FC = () => {
 
       // Draw Ohm QDD Actuator Rings at Joints
       const joints = [
-        { x: baseX, y: baseY, r: 14, color: '#F59E0B', label: 'J1: OHM-QDD-140' },
-        { x: elbowX, y: elbowY, r: 12, color: '#22D3EE', label: 'J2: OHM-QDD-90' },
-        { x: wristX, y: wristY, r: 9, color: '#10B981', label: 'TCP: FORCE-6D' },
+        {
+          x: baseX,
+          y: baseY,
+          r: isCompact ? 11 : 14,
+          color: '#F59E0B',
+          label: isCompact ? 'J1: QDD-140' : 'J1: OHM-QDD-140',
+        },
+        {
+          x: elbowX,
+          y: elbowY,
+          r: isCompact ? 9.5 : 12,
+          color: '#22D3EE',
+          label: isCompact ? 'J2: QDD-90' : 'J2: OHM-QDD-90',
+        },
+        {
+          x: wristX,
+          y: wristY,
+          r: isCompact ? 7.5 : 9,
+          color: '#10B981',
+          label: isCompact ? 'TCP' : 'TCP: FORCE-6D',
+        },
       ];
 
       joints.forEach((j) => {
@@ -256,21 +282,24 @@ export const HeroKinematicBench: React.FC = () => {
         ctx.fill();
         ctx.stroke();
 
-        // Label callout
+        // Clamp label X position so it never clips off the right canvas boundary
         ctx.fillStyle = 'rgba(226, 232, 240, 0.88)';
-        ctx.font = '10px "JetBrains Mono", monospace';
-        ctx.fillText(j.label, j.x + 16, j.y - 10);
+        ctx.font = `${isCompact ? 9 : 10}px "JetBrains Mono", monospace`;
+        const textWidth = ctx.measureText(j.label).width;
+        const labelX = Math.min(j.x + 14, W - textWidth - 8);
+        const labelY = Math.max(14, j.y - 10);
+        ctx.fillText(j.label, labelX, labelY);
       });
 
       // Draw Target Reticle & Payload Vector
       ctx.strokeStyle = '#F59E0B';
       ctx.lineWidth = 1.5;
       ctx.beginPath();
-      ctx.arc(targetX, targetY, 16, 0, Math.PI * 2);
+      ctx.arc(targetX, targetY, isCompact ? 13 : 16, 0, Math.PI * 2);
       ctx.stroke();
 
       // Gravity load vector arrow proportional to payloadMass
-      const arrowLen = 18 + payloadMass * 1.1;
+      const arrowLen = (isCompact ? 14 : 18) + payloadMass * (isCompact ? 0.85 : 1.1);
       ctx.strokeStyle = '#F43F5E';
       ctx.lineWidth = 2;
       ctx.beginPath();
@@ -282,11 +311,13 @@ export const HeroKinematicBench: React.FC = () => {
       ctx.stroke();
 
       ctx.fillStyle = '#FDA4AF';
-      ctx.font = '10px "JetBrains Mono", monospace';
+      ctx.font = `${isCompact ? 9 : 10}px "JetBrains Mono", monospace`;
+      const fgText = `F_g: ${(payloadMass * 9.81).toFixed(1)} N`;
+      const fgWidth = ctx.measureText(fgText).width;
       ctx.fillText(
-        `F_g: ${(payloadMass * 9.81).toFixed(1)} N`,
-        wristX + 8,
-        wristY + arrowLen
+        fgText,
+        Math.min(wristX + 8, W - fgWidth - 8),
+        Math.min(wristY + arrowLen, H - 10)
       );
 
       ctx.restore();
@@ -324,12 +355,12 @@ export const HeroKinematicBench: React.FC = () => {
     return () => cancelAnimationFrame(animationFrameId);
   }, [simRunning, autoPathMode, simMode, targetReach, targetElevation, payloadMass]);
 
-  const handleCanvasPointerDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const clickX = e.clientX - rect.left;
-    const clickY = e.clientY - rect.top;
+  const updateTargetFromPointer = (clientX: number, clientY: number, element: HTMLCanvasElement) => {
+    const rect = element.getBoundingClientRect();
+    const clickX = clientX - rect.left;
+    const clickY = clientY - rect.top;
     const reachPct = Math.round(
-      Math.max(35, Math.min(85, ((clickX / rect.width - 0.28) / 0.56) * 100))
+      Math.max(35, Math.min(85, ((clickX / rect.width - 0.26) / 0.56) * 100))
     );
     const elevPct = Math.round(
       Math.max(18, Math.min(72, ((0.82 - clickY / rect.height) / 0.64) * 100))
@@ -342,32 +373,34 @@ export const HeroKinematicBench: React.FC = () => {
   return (
     <section
       aria-labelledby="hero-heading"
-      className="relative overflow-hidden border-b border-slate-800/80 bg-tech-grid pt-10 pb-20 lg:pt-16 lg:pb-24"
+      className="relative overflow-hidden border-b border-slate-800/80 bg-tech-grid pt-8 pb-16 sm:pt-12 sm:pb-20 lg:pt-16 lg:pb-24"
     >
       {/* Ambient Radial Backlights */}
       <div
-        className="pointer-events-none absolute -top-40 left-1/4 w-[520px] h-[520px] rounded-full bg-cyan-500/10 blur-[130px]"
+        className="pointer-events-none absolute -top-40 left-1/4 w-[320px] sm:w-[520px] h-[320px] sm:h-[520px] rounded-full bg-cyan-500/10 blur-[130px]"
         aria-hidden="true"
       />
       <div
-        className="pointer-events-none absolute top-20 right-10 w-[420px] h-[420px] rounded-full bg-amber-500/10 blur-[130px]"
+        className="pointer-events-none absolute top-20 right-10 w-[260px] sm:w-[420px] h-[260px] sm:h-[420px] rounded-full bg-amber-500/10 blur-[130px]"
         aria-hidden="true"
       />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
           {/* Left Hero Copy */}
-          <div className="lg:col-span-6 space-y-6">
-            <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-md border border-cyan-500/30 bg-cyan-950/30 text-cyan-300 text-xs font-mono">
-              <span className="text-emerald-400" aria-hidden="true">
+          <div className="lg:col-span-6 space-y-5 sm:space-y-6">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md border border-cyan-500/30 bg-cyan-950/30 text-cyan-300 text-[11px] sm:text-xs font-mono max-w-full">
+              <span className="text-emerald-400 shrink-0" aria-hidden="true">
                 ●
               </span>
-              <span>ALGOROS 4.2 + OHM-QDD SILICON-CARBIDE ACTUATION</span>
+              <span className="truncate">
+                ALGOROS 4.2 + OHM-QDD SILICON-CARBIDE ACTUATION
+              </span>
             </div>
 
             <h1
               id="hero-heading"
-              className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white leading-[1.06] font-display"
+              className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-white leading-[1.08] font-display"
             >
               Where{' '}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-cyan-400 to-sky-500">
@@ -379,7 +412,7 @@ export const HeroKinematicBench: React.FC = () => {
               </span>
             </h1>
 
-            <p className="text-base sm:text-lg text-slate-300 leading-relaxed max-w-2xl">
+            <p className="text-sm sm:text-base lg:text-lg text-slate-300 leading-relaxed max-w-2xl">
               AlgorOhm engineers vertically integrated embodied AI systems. By fusing{' '}
               <strong className="text-cyan-300 font-medium">
                 deterministic 4 kHz visuomotor neural policies (Algor)
@@ -392,17 +425,17 @@ export const HeroKinematicBench: React.FC = () => {
             </p>
 
             {/* Primary CTAs */}
-            <div className="flex flex-wrap items-center gap-4 pt-2">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 pt-1">
               <a
                 href="#platforms"
-                className="inline-flex items-center gap-2.5 px-6 py-3.5 rounded-xl font-semibold text-sm bg-cyan-400 text-slate-950 hover:bg-cyan-300 transition-all focus-visible:outline-2 focus-visible:outline-cyan-300"
+                className="inline-flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-xl font-semibold text-sm bg-cyan-400 text-slate-950 hover:bg-cyan-300 transition-all focus-visible:outline-2 focus-visible:outline-cyan-300"
               >
                 <span>Explore Robotic Fleet</span>
                 <ChevronRight className="w-4 h-4" aria-hidden="true" />
               </a>
               <a
                 href="#architecture"
-                className="inline-flex items-center gap-2.5 px-6 py-3.5 rounded-xl font-semibold text-sm border border-slate-700 bg-slate-900/80 text-slate-200 hover:border-cyan-500/50 hover:text-white transition-all focus-visible:outline-2 focus-visible:outline-cyan-400"
+                className="inline-flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-xl font-semibold text-sm border border-slate-700 bg-slate-900/80 text-slate-200 hover:border-cyan-500/50 hover:text-white transition-all focus-visible:outline-2 focus-visible:outline-cyan-400"
               >
                 <Sliders className="w-4 h-4 text-amber-400" aria-hidden="true" />
                 <span>Inspect Algor × Ohm Stack</span>
@@ -410,7 +443,7 @@ export const HeroKinematicBench: React.FC = () => {
             </div>
 
             {/* Live Engineering KPI Strip */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-4 border-t border-slate-800/80">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3 pt-4 border-t border-slate-800/80">
               {[
                 {
                   label: 'PEAK JOINT TORQUE',
@@ -445,16 +478,16 @@ export const HeroKinematicBench: React.FC = () => {
                   key={kpi.label}
                   className="p-3 rounded-xl bg-slate-900/60 border border-slate-800/90"
                 >
-                  <div className="text-[10px] font-mono text-slate-400 tracking-wider">
+                  <div className="text-[10px] font-mono text-slate-400 tracking-wider truncate">
                     {kpi.label}
                   </div>
-                  <div className={`text-xl font-bold font-mono tabular-nums mt-0.5 ${kpi.tone}`}>
+                  <div className={`text-lg sm:text-xl font-bold font-mono tabular-nums mt-0.5 ${kpi.tone}`}>
                     {kpi.val}
-                    <span className="text-xs uppercase font-mono text-slate-400 ml-1">
+                    <span className="text-[11px] uppercase font-mono text-slate-400 ml-1">
                       {kpi.unit}
                     </span>
                   </div>
-                  <div className="text-[11px] text-slate-400 mt-0.5">{kpi.sub}</div>
+                  <div className="text-[11px] text-slate-400 mt-0.5 truncate">{kpi.sub}</div>
                 </div>
               ))}
             </div>
@@ -464,19 +497,19 @@ export const HeroKinematicBench: React.FC = () => {
           <div className="lg:col-span-6">
             <div className="rounded-2xl border border-slate-800 bg-[#0A0E1A]/95 overflow-hidden">
               {/* Top Console Bar */}
-              <div className="px-4 py-3 border-b border-slate-800 flex flex-wrap items-center justify-between gap-2 bg-slate-950/80">
+              <div className="px-3.5 sm:px-4 py-3 border-b border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 bg-slate-950/80">
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-mono text-emerald-400" aria-hidden="true">
                     ●
                   </span>
-                  <span className="text-xs font-mono uppercase tracking-wider text-slate-300">
+                  <span className="text-[11px] sm:text-xs font-mono uppercase tracking-wider text-slate-300 truncate">
                     ALGOR-IK LIVE TELEMETRY BENCH // 4.0 KHZ
                   </span>
                 </div>
                 <div
                   role="group"
                   aria-label="Simulation Visualization Mode"
-                  className="flex items-center gap-1.5"
+                  className="grid grid-cols-3 sm:flex items-center gap-1.5"
                 >
                   {(
                     [
@@ -490,10 +523,10 @@ export const HeroKinematicBench: React.FC = () => {
                       type="button"
                       onClick={() => setSimMode(mode.id)}
                       aria-pressed={simMode === mode.id}
-                      className={`px-2.5 py-1 rounded text-[11px] font-mono transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-cyan-400 ${
+                      className={`px-2 sm:px-2.5 py-1.5 sm:py-1 rounded text-[11px] font-mono transition-colors cursor-pointer text-center focus-visible:outline-2 focus-visible:outline-cyan-400 ${
                         simMode === mode.id
                           ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40'
-                          : 'text-slate-400 hover:text-slate-200 border border-transparent'
+                          : 'text-slate-400 hover:text-slate-200 border border-slate-800 sm:border-transparent bg-slate-900/60 sm:bg-transparent'
                       }`}
                     >
                       {mode.label}
@@ -502,18 +535,48 @@ export const HeroKinematicBench: React.FC = () => {
                 </div>
               </div>
 
+              {/* Mobile Telemetry Readout Strip (Visible <640px so canvas is never obscured) */}
+              <div className="grid grid-cols-2 gap-2 p-2.5 bg-slate-950/90 border-b border-slate-800/80 sm:hidden text-[10px] font-mono tabular-nums">
+                <div className="p-2 rounded-lg bg-slate-900/80 border border-slate-800/90 space-y-0.5">
+                  <div className="text-cyan-400 font-semibold truncate">ALGOR IK SOLVER</div>
+                  <div className="text-slate-300">
+                    J1: <span className="text-white">{telemetry.j1Angle.toFixed(1)}°</span> | J2:{' '}
+                    <span className="text-white">{telemetry.j2Angle.toFixed(1)}°</span>
+                  </div>
+                  <div className="text-slate-400">
+                    Latency:{' '}
+                    <span className="text-emerald-400">{telemetry.loopLatency.toFixed(2)} ms</span>
+                  </div>
+                </div>
+                <div className="p-2 rounded-lg bg-slate-900/80 border border-slate-800/90 space-y-0.5">
+                  <div className="text-amber-400 font-semibold truncate">OHM BUS (48V SiC)</div>
+                  <div className="text-slate-300">
+                    τ_sh:{' '}
+                    <span className="text-amber-300">
+                      {telemetry.shoulderTorque.toFixed(1)} Nm
+                    </span>
+                  </div>
+                  <div className="text-slate-400">
+                    I: <span className="text-white">{telemetry.busCurrent.toFixed(1)}A</span> | R:{' '}
+                    <span className="text-emerald-400">{telemetry.busImpedance.toFixed(3)}mΩ</span>
+                  </div>
+                </div>
+              </div>
+
               {/* Interactive HTML5 Canvas */}
-              <div className="relative h-72 sm:h-80 w-full bg-[#070A12]">
+              <div className="relative h-64 sm:h-80 w-full bg-[#070A12]">
                 <canvas
                   ref={canvasRef}
-                  onClick={handleCanvasPointerDown}
+                  onPointerDown={(e) =>
+                    updateTargetFromPointer(e.clientX, e.clientY, e.currentTarget)
+                  }
                   aria-label="Interactive 2D robotic arm inverse kinematics simulator. Click or tap anywhere in the workspace to command the end-effector target."
                   role="img"
-                  className="w-full h-full block cursor-crosshair"
+                  className="w-full h-full block cursor-crosshair touch-pan-y"
                 />
 
-                {/* Floating Live Telemetry Readout Overlay */}
-                <div className="pointer-events-none absolute top-3 left-3 right-3 flex flex-wrap items-start justify-between gap-2">
+                {/* Desktop/Tablet Floating Live Telemetry Readout Overlay (sm and up) */}
+                <div className="hidden sm:flex pointer-events-none absolute top-3 left-3 right-3 flex-wrap items-start justify-between gap-2">
                   <div className="p-2.5 rounded-lg bg-slate-950/85 border border-slate-800/90 backdrop-blur-md text-[11px] font-mono tabular-nums space-y-1">
                     <div className="text-cyan-400 font-semibold">ALGOR KINEMATIC SOLVER</div>
                     <div className="text-slate-300">
@@ -547,11 +610,14 @@ export const HeroKinematicBench: React.FC = () => {
                 </div>
 
                 {/* Interactive Canvas Hint & Action Bar */}
-                <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between gap-2 pointer-events-none">
-                  <span className="px-2.5 py-1 rounded bg-slate-950/85 border border-slate-800 text-[10px] font-mono text-slate-400">
-                    TIP: CLICK WORKSPACE TO COMMAND END-EFFECTOR TARGET
+                <div className="absolute bottom-2.5 sm:bottom-3 left-2.5 sm:left-3 right-2.5 sm:right-3 flex items-center justify-between gap-2 pointer-events-none">
+                  <span className="px-2 py-1 rounded bg-slate-950/85 border border-slate-800 text-[10px] font-mono text-slate-400 truncate">
+                    <span className="hidden sm:inline">
+                      TIP: CLICK WORKSPACE TO COMMAND END-EFFECTOR TARGET
+                    </span>
+                    <span className="sm:hidden">TAP WORKSPACE TO SET TARGET</span>
                   </span>
-                  <div className="flex items-center gap-1.5 pointer-events-auto">
+                  <div className="flex items-center gap-1.5 pointer-events-auto shrink-0">
                     <button
                       type="button"
                       onClick={() => setAutoPathMode((prev) => !prev)}
@@ -563,29 +629,29 @@ export const HeroKinematicBench: React.FC = () => {
                       }`}
                     >
                       <Crosshair className="w-3 h-3" aria-hidden="true" />
-                      {autoPathMode ? 'Auto Figure-8: ON' : 'Auto Path'}
+                      <span>{autoPathMode ? 'Auto: ON' : 'Auto Path'}</span>
                     </button>
                     <button
                       type="button"
                       onClick={() => setSimRunning((prev) => !prev)}
                       aria-pressed={!simRunning}
-                      className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-900/90 border border-slate-700 text-xs font-mono text-slate-300 hover:text-white hover:border-cyan-500/50 cursor-pointer focus-visible:outline-2 focus-visible:outline-cyan-400"
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-900/90 border border-slate-700 text-[11px] sm:text-xs font-mono text-slate-300 hover:text-white hover:border-cyan-500/50 cursor-pointer focus-visible:outline-2 focus-visible:outline-cyan-400"
                     >
                       {simRunning ? (
                         <Pause className="w-3.5 h-3.5 text-amber-400" aria-hidden="true" />
                       ) : (
                         <Play className="w-3.5 h-3.5 text-emerald-400" aria-hidden="true" />
                       )}
-                      {simRunning ? 'Freeze Solver' : 'Resume Solver'}
+                      <span>{simRunning ? 'Freeze' : 'Resume'}</span>
                     </button>
                   </div>
                 </div>
               </div>
 
               {/* Interactive Sliders Control Panel */}
-              <div className="p-4 bg-slate-950/90 border-t border-slate-800 grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="p-3.5 sm:p-4 bg-slate-950/90 border-t border-slate-800 grid grid-cols-1 sm:grid-cols-3 gap-3.5 sm:gap-4">
                 <div>
-                  <div className="flex justify-between text-xs font-mono tabular-nums mb-1.5">
+                  <div className="flex justify-between text-xs font-mono tabular-nums mb-1">
                     <label htmlFor={reachSliderId} className="text-slate-400">
                       TARGET REACH (X)
                     </label>
@@ -606,7 +672,7 @@ export const HeroKinematicBench: React.FC = () => {
                 </div>
 
                 <div>
-                  <div className="flex justify-between text-xs font-mono tabular-nums mb-1.5">
+                  <div className="flex justify-between text-xs font-mono tabular-nums mb-1">
                     <label htmlFor={elevationSliderId} className="text-slate-400">
                       ELEVATION (Z)
                     </label>
@@ -627,7 +693,7 @@ export const HeroKinematicBench: React.FC = () => {
                 </div>
 
                 <div>
-                  <div className="flex justify-between text-xs font-mono tabular-nums mb-1.5">
+                  <div className="flex justify-between text-xs font-mono tabular-nums mb-1">
                     <label htmlFor={payloadSliderId} className="text-slate-400">
                       PAYLOAD MASS (Ω)
                     </label>
@@ -646,10 +712,12 @@ export const HeroKinematicBench: React.FC = () => {
               </div>
 
               {/* Reset & Quick Pose Preset Bar */}
-              <div className="px-4 py-2.5 bg-[#060911] border-t border-slate-800/80 flex items-center justify-between text-[11px] font-mono text-slate-400">
-                <div className="flex items-center gap-2">
-                  <Gauge className="w-3.5 h-3.5 text-cyan-400" aria-hidden="true" />
-                  <span>SPRING-DAMPER IMPEDANCE: K_p = 450 Nm/rad | K_d = 28 Nm·s/rad</span>
+              <div className="px-3.5 sm:px-4 py-2.5 bg-[#060911] border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-2 text-[10px] sm:text-[11px] font-mono text-slate-400">
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <Gauge className="w-3.5 h-3.5 text-cyan-400 shrink-0" aria-hidden="true" />
+                  <span className="truncate">
+                    IMPEDANCE: K_p = 450 Nm/rad | K_d = 28 Nm·s/rad
+                  </span>
                 </div>
                 <button
                   type="button"
@@ -659,7 +727,7 @@ export const HeroKinematicBench: React.FC = () => {
                     setTargetElevation(44);
                     setPayloadMass(14);
                   }}
-                  className="inline-flex items-center gap-1 text-slate-400 hover:text-cyan-300 transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-cyan-400 rounded px-1"
+                  className="inline-flex items-center gap-1 text-slate-300 hover:text-cyan-300 transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-cyan-400 rounded px-1.5 py-0.5 bg-slate-900/80 border border-slate-800 shrink-0"
                 >
                   <RotateCcw className="w-3 h-3" aria-hidden="true" />
                   <span>Home Pose</span>

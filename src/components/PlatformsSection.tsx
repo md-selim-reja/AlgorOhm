@@ -69,21 +69,21 @@ export const PlatformsSection: React.FC<PlatformsSectionProps> = ({
       <section
         id="platforms"
         aria-labelledby="platforms-heading"
-        className="py-20 lg:py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
+        className="py-16 sm:py-20 lg:py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
       >
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-5 sm:gap-6 mb-10 sm:mb-12">
           <div>
             <div className="inline-flex items-center gap-2 text-xs font-mono uppercase tracking-widest text-cyan-400 mb-2">
-              <Cpu className="w-4 h-4" aria-hidden="true" />
+              <Cpu className="w-4 h-4 shrink-0" aria-hidden="true" />
               <span>01. EMBODIED HARDWARE FLEET</span>
             </div>
             <h2
               id="platforms-heading"
-              className="text-3xl sm:text-4xl font-bold text-white tracking-tight font-display"
+              className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white tracking-tight font-display"
             >
               Production-Grade Autonomous Platforms
             </h2>
-            <p className="text-slate-400 mt-2 max-w-2xl">
+            <p className="text-sm sm:text-base text-slate-400 mt-2 max-w-2xl">
               Every AlgorOhm unit shares a unified AlgorOS neural kernel and modular Ohm™
               Silicon-Carbide actuators. Select any unit below to load its full kinematic &
               electrical schematic in the Spec Inspector.
@@ -102,7 +102,7 @@ export const PlatformsSection: React.FC<PlatformsSectionProps> = ({
                 type="button"
                 onClick={() => setActiveCategory(category)}
                 aria-pressed={activeCategory === category}
-                className={`px-3.5 py-2 rounded-lg text-xs font-mono transition-all cursor-pointer focus-visible:outline-2 focus-visible:outline-cyan-400 ${
+                className={`px-3 sm:px-3.5 py-2 rounded-lg text-xs font-mono transition-all cursor-pointer focus-visible:outline-2 focus-visible:outline-cyan-400 ${
                   activeCategory === category
                     ? 'bg-cyan-400 text-slate-950 font-semibold'
                     : 'bg-slate-900/90 text-slate-400 border border-slate-800 hover:border-slate-700 hover:text-slate-200'
@@ -115,7 +115,7 @@ export const PlatformsSection: React.FC<PlatformsSectionProps> = ({
         </div>
 
         {/* Robot Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
           {filteredRobots.map((robot) => {
             const isSelected = robot.id === selectedRobotId;
             return (
@@ -134,8 +134,8 @@ export const PlatformsSection: React.FC<PlatformsSectionProps> = ({
                     : 'border-slate-800/90 bg-[#0A0E19]/90 hover:border-slate-700'
                 }`}
               >
-                {/* High-Resolution Robot Photography Header with Optional Synthetic CV HUD */}
-                <div className="relative h-64 sm:h-72 w-full overflow-hidden bg-slate-950">
+                {/* High-Resolution Robot Photography Header */}
+                <div className="relative h-56 sm:h-68 lg:h-72 w-full overflow-hidden bg-slate-950">
                   <ResilientImage
                     src={robot.image}
                     alt={`${robot.name} — ${robot.tagline}`}
@@ -143,17 +143,17 @@ export const PlatformsSection: React.FC<PlatformsSectionProps> = ({
                     className="w-full h-full object-cover object-center transition-transform duration-700 hover:scale-105"
                   />
                   <div
-                    className="absolute inset-0 bg-gradient-to-t from-[#0A0E19] via-[#0A0E19]/35 to-transparent"
+                    className="absolute inset-0 bg-gradient-to-t from-[#0A0E19] via-[#0A0E19]/40 to-transparent"
                     aria-hidden="true"
                   />
 
                   {/* Top Badges */}
-                  <div className="absolute top-3.5 left-3.5 right-3.5 flex items-center justify-between gap-2">
-                    <span className="px-2.5 py-1 rounded-md text-[11px] font-mono uppercase tracking-wider bg-slate-950/85 border border-slate-700/80 text-cyan-300 backdrop-blur-md">
+                  <div className="absolute top-3 left-3 right-3 flex flex-wrap items-center justify-between gap-1.5">
+                    <span className="px-2.5 py-1 rounded-md text-[10px] sm:text-[11px] font-mono uppercase tracking-wider bg-slate-950/85 border border-slate-700/80 text-cyan-300 backdrop-blur-md">
                       {robot.codename}
                     </span>
                     <span
-                      className={`px-2.5 py-1 rounded-md text-[11px] font-mono uppercase tracking-wider backdrop-blur-md border ${
+                      className={`px-2.5 py-1 rounded-md text-[10px] sm:text-[11px] font-mono uppercase tracking-wider backdrop-blur-md border ${
                         robot.availability === 'Production Ready'
                           ? 'bg-emerald-950/85 border-emerald-500/40 text-emerald-300'
                           : 'bg-amber-950/85 border-amber-500/40 text-amber-300'
@@ -164,16 +164,16 @@ export const PlatformsSection: React.FC<PlatformsSectionProps> = ({
                   </div>
 
                   {/* Bottom Title Overlay */}
-                  <div className="absolute bottom-3 left-5 right-5 flex items-end justify-between">
-                    <div>
-                      <span className="text-xs font-mono text-amber-400 uppercase tracking-wider">
+                  <div className="absolute bottom-3 left-4 right-4 sm:left-5 sm:right-5 flex flex-col sm:flex-row sm:items-end justify-between gap-2">
+                    <div className="min-w-0">
+                      <span className="block text-[11px] sm:text-xs font-mono text-amber-400 uppercase tracking-wider truncate">
                         {robot.category}
                       </span>
-                      <h3 className="text-2xl font-bold text-white tracking-tight font-display">
+                      <h3 className="text-xl sm:text-2xl font-bold text-white tracking-tight font-display truncate">
                         {robot.name}
                       </h3>
                     </div>
-                    <span className="inline-flex items-center gap-1 text-xs font-mono text-cyan-300 bg-cyan-950/80 border border-cyan-500/40 px-2.5 py-1 rounded-md">
+                    <span className="self-start sm:self-auto shrink-0 inline-flex items-center gap-1 text-[11px] sm:text-xs font-mono text-cyan-300 bg-cyan-950/85 border border-cyan-500/40 px-2.5 py-1 rounded-md">
                       {isSelected ? 'ACTIVE IN INSPECTOR' : 'INSPECT SPECS'}
                       <ArrowUpRight className="w-3.5 h-3.5" aria-hidden="true" />
                     </span>
@@ -181,12 +181,12 @@ export const PlatformsSection: React.FC<PlatformsSectionProps> = ({
                 </div>
 
                 {/* Card Body */}
-                <div className="p-6 flex-1 flex flex-col justify-between space-y-5">
-                  <p className="text-sm text-slate-300 leading-relaxed">
+                <div className="p-4 sm:p-6 flex-1 flex flex-col justify-between space-y-4 sm:space-y-5">
+                  <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
                     {robot.description}
                   </p>
 
-                  {/* Algor vs Ohm Synergy Pill Box */}
+                  {/* Algor vs Ohm Synergy Box */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
                     <div className="p-3 rounded-xl bg-cyan-950/20 border border-cyan-500/25">
                       <div className="text-[10px] font-mono uppercase tracking-wider text-cyan-400 font-semibold mb-1">
@@ -206,27 +206,27 @@ export const PlatformsSection: React.FC<PlatformsSectionProps> = ({
                     </div>
                   </div>
 
-                  {/* Key Metrics Footer */}
-                  <div className="grid grid-cols-4 gap-2 pt-4 border-t border-slate-800/80 text-center">
-                    <div>
+                  {/* Key Metrics Footer: 2 cols on mobile, 4 cols on sm+ */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-4 border-t border-slate-800/80 text-center">
+                    <div className="p-2 sm:p-0 rounded-lg bg-slate-950/50 sm:bg-transparent border border-slate-800/60 sm:border-0">
                       <div className="text-[10px] font-mono text-slate-400">PEAK TORQUE</div>
                       <div className="text-xs font-mono font-semibold text-white mt-0.5 tabular-nums">
                         {robot.specs.peakTorque.split(' ')[0]} Nm
                       </div>
                     </div>
-                    <div>
+                    <div className="p-2 sm:p-0 rounded-lg bg-slate-950/50 sm:bg-transparent border border-slate-800/60 sm:border-0">
                       <div className="text-[10px] font-mono text-slate-400">COMPUTE</div>
                       <div className="text-xs font-mono font-semibold text-cyan-300 mt-0.5 tabular-nums">
                         {robot.specs.computePower.split(' ')[0]} TOPS
                       </div>
                     </div>
-                    <div>
+                    <div className="p-2 sm:p-0 rounded-lg bg-slate-950/50 sm:bg-transparent border border-slate-800/60 sm:border-0">
                       <div className="text-[10px] font-mono text-slate-400">MAX PAYLOAD</div>
                       <div className="text-xs font-mono font-semibold text-amber-300 mt-0.5 tabular-nums">
                         {robot.specs.maxPayloadKg} kg
                       </div>
                     </div>
-                    <div>
+                    <div className="p-2 sm:p-0 rounded-lg bg-slate-950/50 sm:bg-transparent border border-slate-800/60 sm:border-0">
                       <div className="text-[10px] font-mono text-slate-400">RUNTIME</div>
                       <div className="text-xs font-mono font-semibold text-emerald-300 mt-0.5 tabular-nums">
                         {robot.specs.baseRuntimeHours} hrs
@@ -244,29 +244,29 @@ export const PlatformsSection: React.FC<PlatformsSectionProps> = ({
       <section
         id="inspector"
         aria-labelledby="inspector-heading"
-        className="py-20 bg-[#0A0E18] border-y border-slate-800/90"
+        className="py-16 sm:py-20 bg-[#0A0E18] border-y border-slate-800/90"
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-10">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5 sm:gap-6 mb-8 sm:mb-10">
             <div>
               <div className="inline-flex items-center gap-2 text-xs font-mono uppercase tracking-widest text-amber-400 mb-2">
-                <Sliders className="w-4 h-4" aria-hidden="true" />
+                <Sliders className="w-4 h-4 shrink-0" aria-hidden="true" />
                 <span>02. DEEP HARDWARE & IMPEDANCE INSPECTOR</span>
               </div>
               <h2
                 id="inspector-heading"
-                className="text-3xl font-bold text-white tracking-tight font-display"
+                className="text-2xl sm:text-3xl font-bold text-white tracking-tight font-display"
               >
                 Unit Telemetry & Actuator Datasheet:{' '}
                 <span className="text-cyan-400">{selectedRobot.name}</span>
               </h2>
             </div>
 
-            {/* Quick Unit Switcher Tabs */}
+            {/* Quick Unit Switcher Tabs: 2x2 grid on mobile, inline flex on sm+ */}
             <div
               role="tablist"
               aria-label="Select robot unit for inspection"
-              className="flex flex-wrap gap-2"
+              className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 w-full lg:w-auto"
             >
               {ROBOT_PLATFORMS.map((r) => (
                 <button
@@ -275,7 +275,7 @@ export const PlatformsSection: React.FC<PlatformsSectionProps> = ({
                   role="tab"
                   aria-selected={selectedRobotId === r.id}
                   onClick={() => onSelectRobot(r.id)}
-                  className={`px-4 py-2 rounded-xl text-xs font-mono transition-all cursor-pointer focus-visible:outline-2 focus-visible:outline-cyan-400 ${
+                  className={`px-3 sm:px-4 py-2.5 sm:py-2 rounded-xl text-xs font-mono transition-all cursor-pointer text-center focus-visible:outline-2 focus-visible:outline-cyan-400 ${
                     selectedRobotId === r.id
                       ? 'bg-gradient-to-r from-cyan-500 to-sky-500 text-slate-950 font-bold'
                       : 'bg-slate-900 border border-slate-800 text-slate-300 hover:border-slate-700'
@@ -287,44 +287,46 @@ export const PlatformsSection: React.FC<PlatformsSectionProps> = ({
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
             {/* Left Column: Dual Visuals + Highlights */}
-            <div className="lg:col-span-5 space-y-6">
+            <div className="lg:col-span-5 space-y-5 sm:space-y-6">
               <div className="rounded-2xl overflow-hidden border border-slate-800 bg-slate-950 relative">
                 <ResilientImage
                   src={selectedRobot.image}
                   alt={selectedRobot.name}
                   fallbackLabel={selectedRobot.codename}
-                  className="w-full h-72 object-cover"
+                  className="w-full h-56 sm:h-72 object-cover"
                 />
-                <div className="p-4 bg-slate-950/95 border-t border-slate-800 flex items-center justify-between text-xs font-mono">
-                  <span className="text-slate-400">
+                <div className="p-3.5 sm:p-4 bg-slate-950/95 border-t border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-xs font-mono">
+                  <span className="text-slate-400 truncate">
                     PRIMARY OPTICAL FEED // {selectedRobot.codename}
                   </span>
-                  <span className="text-emerald-400">{selectedRobot.specs.protectionRating}</span>
+                  <span className="text-emerald-400 shrink-0">
+                    {selectedRobot.specs.protectionRating}
+                  </span>
                 </div>
               </div>
 
               {/* Secondary Detail Sub-Assembly Image */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="rounded-xl overflow-hidden border border-slate-800 bg-slate-950">
+                <div className="rounded-xl overflow-hidden border border-slate-800 bg-slate-950 flex flex-col">
                   <ResilientImage
                     src={selectedRobot.secondaryImage}
                     alt={`${selectedRobot.name} sub-assembly`}
                     fallbackLabel="OHM_ACTUATOR_STAGE"
-                    className="w-full h-36 object-cover"
+                    className="w-full h-40 sm:h-36 object-cover"
                   />
                   <div className="p-2.5 text-[11px] font-mono text-slate-400">
                     Internal Ohm™ Actuator & Harness Stage
                   </div>
                 </div>
 
-                <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-4 flex flex-col justify-between">
+                <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-4 flex flex-col justify-between gap-3">
                   <div>
                     <div className="text-[10px] font-mono uppercase tracking-wider text-amber-400">
                       REPEATABILITY (ISO 9283)
                     </div>
-                    <div className="text-2xl font-bold font-mono tabular-nums text-white mt-1">
+                    <div className="text-xl sm:text-2xl font-bold font-mono tabular-nums text-white mt-1">
                       {selectedRobot.specs.repeatability}
                     </div>
                     <p className="text-xs text-slate-400 mt-2">
@@ -339,13 +341,13 @@ export const PlatformsSection: React.FC<PlatformsSectionProps> = ({
               </div>
 
               {/* Key Engineering Highlights */}
-              <div className="rounded-2xl border border-slate-800 bg-slate-900/50 p-5 space-y-3">
+              <div className="rounded-2xl border border-slate-800 bg-slate-900/50 p-4 sm:p-5 space-y-3">
                 <h3 className="text-xs font-mono uppercase tracking-wider text-cyan-400 font-semibold">
                   ARCHITECTURAL HIGHLIGHTS
                 </h3>
                 <ul className="space-y-2.5">
                   {selectedRobot.highlights.map((item) => (
-                    <li key={item} className="flex items-start gap-2.5 text-sm text-slate-300">
+                    <li key={item} className="flex items-start gap-2.5 text-xs sm:text-sm text-slate-300">
                       <CheckCircle2
                         className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5"
                         aria-hidden="true"
@@ -358,24 +360,24 @@ export const PlatformsSection: React.FC<PlatformsSectionProps> = ({
             </div>
 
             {/* Right Column: Full Specification Grid + Interactive Payload/Runtime Simulator */}
-            <div className="lg:col-span-7 space-y-6">
+            <div className="lg:col-span-7 space-y-5 sm:space-y-6">
               {/* Specification Matrix */}
-              <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6">
-                <div className="flex items-center justify-between pb-4 mb-5 border-b border-slate-800">
+              <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-4 sm:p-6">
+                <div className="flex flex-wrap items-center justify-between gap-2 pb-4 mb-5 border-b border-slate-800">
                   <div>
-                    <h3 className="text-lg font-bold text-white font-display">
+                    <h3 className="text-base sm:text-lg font-bold text-white font-display">
                       Electro-Mechanical & Compute Datasheet
                     </h3>
                     <p className="text-xs text-slate-400">
                       Verified at 25°C ambient under VDA 5050 / ISO 10218-1 test protocols
                     </p>
                   </div>
-                  <span className="px-3 py-1 rounded-md bg-cyan-500/10 border border-cyan-500/30 text-xs font-mono text-cyan-300">
+                  <span className="px-3 py-1 rounded-md bg-cyan-500/10 border border-cyan-500/30 text-xs font-mono text-cyan-300 shrink-0">
                     REV 2026.4
                   </span>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                   {[
                     { label: 'Degrees of Freedom', value: selectedRobot.specs.dof },
                     { label: 'Peak Joint Torque', value: selectedRobot.specs.peakTorque },
@@ -395,7 +397,7 @@ export const PlatformsSection: React.FC<PlatformsSectionProps> = ({
                       className="p-3.5 rounded-xl bg-slate-950/80 border border-slate-800/80"
                     >
                       <div className="text-[11px] font-mono text-slate-400">{spec.label}</div>
-                      <div className="text-sm font-semibold text-white mt-1 font-mono tabular-nums">
+                      <div className="text-xs sm:text-sm font-semibold text-white mt-1 font-mono tabular-nums">
                         {spec.value}
                       </div>
                     </div>
@@ -403,30 +405,52 @@ export const PlatformsSection: React.FC<PlatformsSectionProps> = ({
                 </div>
               </div>
 
-              {/* Actuator Joint Breakdown Table */}
+              {/* Actuator Joint Breakdown Table (Responsive Cards on Mobile, Table on sm+) */}
               <div className="rounded-2xl border border-slate-800 bg-slate-900/60 overflow-hidden">
-                <div className="px-6 py-4 border-b border-slate-800 flex items-center justify-between">
+                <div className="px-4 sm:px-6 py-3.5 sm:py-4 border-b border-slate-800 flex flex-wrap items-center justify-between gap-2">
                   <span className="text-xs font-mono uppercase tracking-wider text-amber-400 font-semibold">
                     OHM™ PROPRIOCEPTIVE ACTUATOR BREAKDOWN
                   </span>
-                  <span className="text-xs font-mono text-slate-400">
+                  <span className="text-[11px] sm:text-xs font-mono text-slate-400">
                     100 kHz SiC FOC Current Loop
                   </span>
                 </div>
-                <div className="overflow-x-auto">
+
+                {/* Mobile Stacked Cards (<640px) */}
+                <div className="sm:hidden divide-y divide-slate-800/80">
+                  {selectedRobot.actuatorBreakdown.map((row) => (
+                    <div key={row.joint} className="p-4 space-y-2">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-sm font-semibold text-white">{row.joint}</span>
+                        <span className="text-xs font-mono text-cyan-300">{row.actuator}</span>
+                      </div>
+                      <div className="flex items-center justify-between text-xs font-mono tabular-nums pt-1">
+                        <span className="text-slate-400">
+                          Peak: <strong className="text-amber-300">{row.torque}</strong>
+                        </span>
+                        <span className="text-slate-400">
+                          Max Speed: <strong className="text-slate-200">{row.speed}</strong>
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Tablet & Desktop Table (sm+) */}
+                <div className="hidden sm:block overflow-x-auto">
                   <table className="w-full text-left border-collapse">
                     <thead>
                       <tr className="border-b border-slate-800 text-[11px] font-mono text-slate-400 bg-slate-950/60">
-                        <th scope="col" className="py-3 px-6">
+                        <th scope="col" className="py-3 px-5 lg:px-6">
                           KINEMATIC JOINT GROUP
                         </th>
-                        <th scope="col" className="py-3 px-6">
+                        <th scope="col" className="py-3 px-5 lg:px-6">
                           OHM™ ACTUATOR MODULE
                         </th>
-                        <th scope="col" className="py-3 px-6">
+                        <th scope="col" className="py-3 px-5 lg:px-6">
                           PEAK TORQUE / FORCE
                         </th>
-                        <th scope="col" className="py-3 px-6">
+                        <th scope="col" className="py-3 px-5 lg:px-6">
                           MAX VELOCITY
                         </th>
                       </tr>
@@ -437,14 +461,16 @@ export const PlatformsSection: React.FC<PlatformsSectionProps> = ({
                           key={row.joint}
                           className="hover:bg-slate-800/30 transition-colors"
                         >
-                          <td className="py-3.5 px-6 font-medium text-white">{row.joint}</td>
-                          <td className="py-3.5 px-6 font-mono text-cyan-300 text-xs">
+                          <td className="py-3.5 px-5 lg:px-6 font-medium text-white">
+                            {row.joint}
+                          </td>
+                          <td className="py-3.5 px-5 lg:px-6 font-mono text-cyan-300 text-xs">
                             {row.actuator}
                           </td>
-                          <td className="py-3.5 px-6 font-mono text-amber-300 text-xs tabular-nums">
+                          <td className="py-3.5 px-5 lg:px-6 font-mono text-amber-300 text-xs tabular-nums">
                             {row.torque}
                           </td>
-                          <td className="py-3.5 px-6 font-mono text-slate-300 text-xs tabular-nums">
+                          <td className="py-3.5 px-5 lg:px-6 font-mono text-slate-300 text-xs tabular-nums">
                             {row.speed}
                           </td>
                         </tr>
@@ -455,22 +481,22 @@ export const PlatformsSection: React.FC<PlatformsSectionProps> = ({
               </div>
 
               {/* Interactive Mission Payload & Thermal Endurance Simulator */}
-              <div className="rounded-2xl border border-cyan-500/30 bg-gradient-to-br from-slate-900/95 via-[#0B1324] to-slate-950 p-6">
+              <div className="rounded-2xl border border-cyan-500/30 bg-gradient-to-br from-slate-900/95 via-[#0B1324] to-slate-950 p-4 sm:p-6">
                 <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
                   <div className="flex items-center gap-2">
-                    <Zap className="w-4 h-4 text-amber-400" aria-hidden="true" />
-                    <h3 className="text-sm font-mono uppercase tracking-wider text-white font-semibold">
+                    <Zap className="w-4 h-4 text-amber-400 shrink-0" aria-hidden="true" />
+                    <h3 className="text-xs sm:text-sm font-mono uppercase tracking-wider text-white font-semibold">
                       LIVE PAYLOAD × RUNTIME SIMULATOR ({selectedRobot.name})
                     </h3>
                   </div>
-                  <span className="text-xs font-mono text-cyan-300">
+                  <span className="text-[11px] sm:text-xs font-mono text-cyan-300">
                     Interactive Duty-Cycle Model
                   </span>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mb-5 sm:mb-6">
                   <div>
-                    <div className="flex justify-between text-xs font-mono tabular-nums mb-2">
+                    <div className="flex justify-between text-xs font-mono tabular-nums mb-1.5">
                       <label htmlFor={payloadSliderId} className="text-slate-300">
                         ACTIVE PAYLOAD MASS
                       </label>
@@ -491,7 +517,7 @@ export const PlatformsSection: React.FC<PlatformsSectionProps> = ({
                   </div>
 
                   <div>
-                    <div className="flex justify-between text-xs font-mono tabular-nums mb-2">
+                    <div className="flex justify-between text-xs font-mono tabular-nums mb-1.5">
                       <label htmlFor={dutyCycleSliderId} className="text-slate-300">
                         DYNAMIC DUTY CYCLE
                       </label>
@@ -510,31 +536,31 @@ export const PlatformsSection: React.FC<PlatformsSectionProps> = ({
                   </div>
                 </div>
 
-                <div className="grid grid-cols-3 gap-4 pt-4 border-t border-slate-800/90">
-                  <div className="p-3 rounded-xl bg-slate-950/80 border border-slate-800">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 pt-4 border-t border-slate-800/90">
+                  <div className="p-3 rounded-xl bg-slate-950/80 border border-slate-800 flex sm:block items-center justify-between">
                     <div className="text-[10px] font-mono text-slate-400">
                       EST. CONTINUOUS RUNTIME
                     </div>
-                    <div className="text-xl font-bold font-mono tabular-nums text-emerald-400 mt-0.5">
+                    <div className="text-lg sm:text-xl font-bold font-mono tabular-nums text-emerald-400 sm:mt-0.5">
                       {animRuntime.toFixed(1)}
                       <span className="text-xs uppercase font-mono text-slate-400 ml-1">
                         hrs
                       </span>
                     </div>
                   </div>
-                  <div className="p-3 rounded-xl bg-slate-950/80 border border-slate-800">
+                  <div className="p-3 rounded-xl bg-slate-950/80 border border-slate-800 flex sm:block items-center justify-between">
                     <div className="text-[10px] font-mono text-slate-400">AVG BUS POWER DRAW</div>
-                    <div className="text-xl font-bold font-mono tabular-nums text-cyan-300 mt-0.5">
+                    <div className="text-lg sm:text-xl font-bold font-mono tabular-nums text-cyan-300 sm:mt-0.5">
                       {animPowerDraw}
                       <span className="text-xs uppercase font-mono text-slate-400 ml-1">
                         W
                       </span>
                     </div>
                   </div>
-                  <div className="p-3 rounded-xl bg-slate-950/80 border border-slate-800">
+                  <div className="p-3 rounded-xl bg-slate-950/80 border border-slate-800 flex sm:block items-center justify-between">
                     <div className="text-[10px] font-mono text-slate-400">STEADY STATOR TEMP</div>
                     <div
-                      className={`text-xl font-bold font-mono tabular-nums mt-0.5 ${
+                      className={`text-lg sm:text-xl font-bold font-mono tabular-nums sm:mt-0.5 ${
                         inspectorSimulation.statorTempC > 68
                           ? 'text-amber-400'
                           : 'text-sky-300'
@@ -558,7 +584,7 @@ export const PlatformsSection: React.FC<PlatformsSectionProps> = ({
                   <button
                     type="button"
                     onClick={() => onOpenPilotForRobot(selectedRobot)}
-                    className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-xs font-mono font-semibold uppercase bg-cyan-400 text-slate-950 hover:bg-cyan-300 transition-all shrink-0 cursor-pointer focus-visible:outline-2 focus-visible:outline-cyan-300"
+                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 sm:py-2 rounded-lg text-xs font-mono font-semibold uppercase bg-cyan-400 text-slate-950 hover:bg-cyan-300 transition-all shrink-0 cursor-pointer focus-visible:outline-2 focus-visible:outline-cyan-300"
                   >
                     <span>Reserve {selectedRobot.name} Pilot</span>
                     <ChevronRight className="w-3.5 h-3.5" aria-hidden="true" />

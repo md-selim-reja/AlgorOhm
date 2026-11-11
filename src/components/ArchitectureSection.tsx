@@ -12,21 +12,21 @@ export const ArchitectureSection: React.FC = () => {
     <section
       id="architecture"
       aria-labelledby="architecture-heading"
-      className="py-20 lg:py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
+      className="py-16 sm:py-20 lg:py-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
     >
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+      <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-5 sm:gap-6 mb-10 sm:mb-12">
         <div>
           <div className="inline-flex items-center gap-2 text-xs font-mono uppercase tracking-widest text-cyan-400 mb-2">
-            <Layers className="w-4 h-4" aria-hidden="true" />
+            <Layers className="w-4 h-4 shrink-0" aria-hidden="true" />
             <span>03. VERTICALLY INTEGRATED ARCHITECTURE</span>
           </div>
           <h2
             id="architecture-heading"
-            className="text-3xl sm:text-4xl font-bold text-white tracking-tight font-display"
+            className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white tracking-tight font-display"
           >
             The Algor™ × Ohm™ Dual-Core Stack
           </h2>
-          <p className="text-slate-400 mt-2 max-w-2xl">
+          <p className="text-sm sm:text-base text-slate-400 mt-2 max-w-2xl">
             Toggle between our deterministic neural software layer (Algor™) and our ultra-low
             impedance electromechanical hardware core (Ohm™).
           </p>
@@ -36,44 +36,44 @@ export const ArchitectureSection: React.FC = () => {
         <div
           role="tablist"
           aria-label="Select architecture layer"
-          className="inline-flex p-1.5 rounded-2xl bg-slate-900 border border-slate-800 self-start"
+          className="grid grid-cols-2 sm:inline-flex p-1.5 rounded-2xl bg-slate-900 border border-slate-800 w-full sm:w-auto self-start"
         >
           <button
             type="button"
             role="tab"
             aria-selected={archTab === 'algor'}
             onClick={() => setArchTab('algor')}
-            className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-mono font-semibold transition-all cursor-pointer focus-visible:outline-2 focus-visible:outline-cyan-400 ${
+            className={`inline-flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2.5 rounded-xl text-[11px] sm:text-xs font-mono font-semibold transition-all cursor-pointer focus-visible:outline-2 focus-visible:outline-cyan-400 ${
               archTab === 'algor'
                 ? 'bg-cyan-400 text-slate-950'
                 : 'text-slate-400 hover:text-white'
             }`}
           >
-            <CircuitBoard className="w-4 h-4" aria-hidden="true" />
-            <span>ALGOR™ NEURAL OS</span>
+            <CircuitBoard className="w-4 h-4 shrink-0" aria-hidden="true" />
+            <span className="truncate">ALGOR™ NEURAL OS</span>
           </button>
           <button
             type="button"
             role="tab"
             aria-selected={archTab === 'ohm'}
             onClick={() => setArchTab('ohm')}
-            className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-mono font-semibold transition-all cursor-pointer focus-visible:outline-2 focus-visible:outline-amber-400 ${
+            className={`inline-flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2.5 rounded-xl text-[11px] sm:text-xs font-mono font-semibold transition-all cursor-pointer focus-visible:outline-2 focus-visible:outline-amber-400 ${
               archTab === 'ohm'
                 ? 'bg-amber-400 text-slate-950'
                 : 'text-slate-400 hover:text-white'
             }`}
           >
-            <Zap className="w-4 h-4" aria-hidden="true" />
-            <span>OHM™ ACTUATION CORE</span>
+            <Zap className="w-4 h-4 shrink-0" aria-hidden="true" />
+            <span className="truncate">OHM™ ACTUATION CORE</span>
           </button>
         </div>
       </div>
 
       {/* Active Architecture Showcase */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-stretch">
         {/* Left Banner Card */}
         <div
-          className={`lg:col-span-5 rounded-2xl border p-6 flex flex-col justify-between ${
+          className={`lg:col-span-5 rounded-2xl border p-4 sm:p-6 flex flex-col justify-between ${
             archTab === 'algor'
               ? 'border-cyan-500/40 bg-gradient-to-b from-cyan-950/25 via-slate-900/90 to-slate-950'
               : 'border-amber-500/40 bg-gradient-to-b from-amber-950/25 via-slate-900/90 to-slate-950'
@@ -81,7 +81,7 @@ export const ArchitectureSection: React.FC = () => {
         >
           <div className="space-y-4">
             <span
-              className={`inline-block px-3 py-1 rounded-md text-[11px] font-mono uppercase tracking-wider border ${
+              className={`inline-block px-3 py-1 rounded-md text-[10px] sm:text-[11px] font-mono uppercase tracking-wider border ${
                 archTab === 'algor'
                   ? 'bg-cyan-500/15 border-cyan-500/40 text-cyan-300'
                   : 'bg-amber-500/15 border-amber-500/40 text-amber-300'
@@ -92,20 +92,22 @@ export const ArchitectureSection: React.FC = () => {
             <h3 className="text-2xl sm:text-3xl font-bold text-white font-display">
               {activeArch.title}
             </h3>
-            <p className="text-sm text-slate-300 leading-relaxed">
+            <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
               {activeArch.description}
             </p>
 
             {/* 4 Key Metrics */}
-            <div className="grid grid-cols-2 gap-3 pt-2">
+            <div className="grid grid-cols-2 gap-2.5 sm:gap-3 pt-2">
               {activeArch.metrics.map((m) => (
                 <div
                   key={m.label}
-                  className="p-3.5 rounded-xl bg-slate-950/80 border border-slate-800/90"
+                  className="p-3 sm:p-3.5 rounded-xl bg-slate-950/80 border border-slate-800/90"
                 >
-                  <div className="text-[11px] font-mono text-slate-400">{m.label}</div>
+                  <div className="text-[10px] sm:text-[11px] font-mono text-slate-400">
+                    {m.label}
+                  </div>
                   <div
-                    className={`text-xl font-bold font-mono tabular-nums mt-1 ${
+                    className={`text-lg sm:text-xl font-bold font-mono tabular-nums mt-1 ${
                       archTab === 'algor' ? 'text-cyan-300' : 'text-amber-300'
                     }`}
                   >
@@ -122,7 +124,7 @@ export const ArchitectureSection: React.FC = () => {
               src={activeArch.heroImage}
               alt={activeArch.title}
               fallbackLabel={activeArch.subtitle}
-              className="w-full h-48 object-cover"
+              className="w-full h-44 sm:h-48 object-cover"
             />
             <div className="p-3 text-xs font-mono text-slate-400 bg-slate-950">
               {activeArch.heroCaption}
@@ -131,11 +133,11 @@ export const ArchitectureSection: React.FC = () => {
         </div>
 
         {/* Right 4-Module Stack Breakdown */}
-        <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-5">
+        <div className="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
           {activeArch.modules.map((mod) => (
             <div
               key={mod.code}
-              className="rounded-2xl border border-slate-800/90 bg-slate-900/60 p-6 flex flex-col justify-between hover:border-slate-700 transition-all"
+              className="rounded-2xl border border-slate-800/90 bg-slate-900/60 p-5 sm:p-6 flex flex-col justify-between hover:border-slate-700 transition-all"
             >
               <div>
                 <div className="flex items-center justify-between gap-2 mb-3">
@@ -152,7 +154,9 @@ export const ArchitectureSection: React.FC = () => {
                     {mod.latencyOrSpec}
                   </span>
                 </div>
-                <h4 className="text-lg font-bold text-white mb-2 font-display">{mod.name}</h4>
+                <h4 className="text-base sm:text-lg font-bold text-white mb-2 font-display">
+                  {mod.name}
+                </h4>
                 <p className="text-xs text-slate-300 leading-relaxed">{mod.summary}</p>
               </div>
 
