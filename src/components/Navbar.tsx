@@ -1,20 +1,12 @@
 import React, { useState } from 'react';
-import { ArrowUpRight, Download, Eye, Menu, X } from 'lucide-react';
+import { ArrowUpRight, Menu, X } from 'lucide-react';
 import { AlgorOhmLogo } from './ui/AlgorOhmLogo';
 
 interface NavbarProps {
-  cvHudEnabled: boolean;
-  onToggleCvHud: () => void;
-  onDownloadStandaloneHtml: () => void;
   onOpenDemoModal: () => void;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({
-  cvHudEnabled,
-  onToggleCvHud,
-  onDownloadStandaloneHtml,
-  onOpenDemoModal,
-}) => {
+export const Navbar: React.FC<NavbarProps> = ({ onOpenDemoModal }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navLinks = [
@@ -69,33 +61,8 @@ export const Navbar: React.FC<NavbarProps> = ({
           ))}
         </nav>
 
-        {/* Global Vision HUD Toggle + Export + CTA */}
+        {/* Primary Action CTA */}
         <div className="hidden sm:flex items-center gap-2.5">
-          <button
-            type="button"
-            onClick={onToggleCvHud}
-            aria-pressed={cvHudEnabled}
-            className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-mono border transition-all cursor-pointer focus-visible:outline-2 focus-visible:outline-cyan-400 ${
-              cvHudEnabled
-                ? 'bg-cyan-500/15 border-cyan-500/50 text-cyan-300'
-                : 'bg-slate-900/80 border-slate-800 text-slate-400 hover:text-slate-200'
-            }`}
-            title="Toggle Synthetic Computer Vision HUD Overlay on Robot Imagery"
-          >
-            <Eye className="w-3.5 h-3.5" aria-hidden="true" />
-            <span>VISION HUD: {cvHudEnabled ? 'ON' : 'OFF'}</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={onDownloadStandaloneHtml}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono border border-amber-500/40 bg-amber-500/10 text-amber-300 hover:bg-amber-500/20 transition-all cursor-pointer focus-visible:outline-2 focus-visible:outline-amber-400"
-            title="Download single-file standalone HTML bundle of this site"
-          >
-            <Download className="w-3.5 h-3.5" aria-hidden="true" />
-            <span className="hidden xl:inline">Standalone</span> .HTML
-          </button>
-
           <button
             type="button"
             onClick={onOpenDemoModal}
@@ -142,38 +109,16 @@ export const Navbar: React.FC<NavbarProps> = ({
               </a>
             ))}
           </div>
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 pt-3 border-t border-slate-800">
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={onToggleCvHud}
-                aria-pressed={cvHudEnabled}
-                className="flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-xs font-mono border border-cyan-500/40 bg-cyan-500/10 text-cyan-300"
-              >
-                <Eye className="w-3.5 h-3.5" aria-hidden="true" />
-                VISION HUD: {cvHudEnabled ? 'ON' : 'OFF'}
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setMobileMenuOpen(false);
-                  onDownloadStandaloneHtml();
-                }}
-                className="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-mono border border-amber-500/40 bg-amber-500/10 text-amber-300"
-              >
-                <Download className="w-3.5 h-3.5" aria-hidden="true" />
-                .HTML
-              </button>
-            </div>
+          <div className="pt-3 border-t border-slate-800">
             <button
               type="button"
               onClick={() => {
                 setMobileMenuOpen(false);
                 onOpenDemoModal();
               }}
-              className="px-4 py-2 rounded-lg text-xs font-semibold uppercase bg-cyan-400 text-slate-950 text-center"
+              className="w-full px-4 py-2.5 rounded-lg text-xs font-semibold uppercase bg-cyan-400 text-slate-950 text-center"
             >
-              Request Demo
+              Request Unit Demo
             </button>
           </div>
         </nav>

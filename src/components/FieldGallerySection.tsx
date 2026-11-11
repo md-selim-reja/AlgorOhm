@@ -1,18 +1,14 @@
 import React from 'react';
-import { Eye, Factory, Maximize2 } from 'lucide-react';
+import { Factory, Maximize2 } from 'lucide-react';
 import { FIELD_GALLERY } from '../data/roboticsData';
 import { FieldGalleryItem } from '../types/robotics';
 import { ResilientImage } from './ui/ResilientImage';
 
 interface FieldGallerySectionProps {
-  cvHudEnabled: boolean;
-  onToggleCvHud: () => void;
   onOpenLightbox: (item: FieldGalleryItem) => void;
 }
 
 export const FieldGallerySection: React.FC<FieldGallerySectionProps> = ({
-  cvHudEnabled,
-  onToggleCvHud,
   onOpenLightbox,
 }) => {
   return (
@@ -39,16 +35,6 @@ export const FieldGallerySection: React.FC<FieldGallerySectionProps> = ({
               Click any optical feed for full-resolution telemetry inspection.
             </p>
           </div>
-
-          <button
-            type="button"
-            onClick={onToggleCvHud}
-            aria-pressed={cvHudEnabled}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-mono border border-cyan-500/40 bg-cyan-500/10 text-cyan-300 hover:bg-cyan-500/20 self-start cursor-pointer focus-visible:outline-2 focus-visible:outline-cyan-400"
-          >
-            <Eye className="w-4 h-4" aria-hidden="true" />
-            <span>{cvHudEnabled ? 'Disable CV Reticles' : 'Enable CV Reticles'}</span>
-          </button>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -93,17 +79,6 @@ export const FieldGallerySection: React.FC<FieldGallerySectionProps> = ({
                 <div className="absolute bottom-3 right-3 p-2 rounded-lg bg-slate-950/80 border border-slate-700 text-slate-300 group-hover:text-cyan-300 group-hover:border-cyan-500/50 transition-colors">
                   <Maximize2 className="w-4 h-4" aria-hidden="true" />
                 </div>
-
-                {cvHudEnabled && (
-                  <div
-                    className="pointer-events-none absolute inset-5 border border-cyan-400/40 rounded flex items-end p-2"
-                    aria-hidden="true"
-                  >
-                    <span className="text-[10px] font-mono text-cyan-300 bg-slate-950/90 px-1.5 py-0.5 rounded">
-                      UNIT: {item.robotUnit} // LOC: {item.location}
-                    </span>
-                  </div>
-                )}
               </div>
 
               <div className="p-5 flex-1 flex flex-col justify-between space-y-3">

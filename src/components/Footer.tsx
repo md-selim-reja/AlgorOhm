@@ -1,17 +1,13 @@
 import React from 'react';
-import { Award, Download, Globe, MapPin, ShieldCheck } from 'lucide-react';
+import { Award, Globe, MapPin, ShieldCheck } from 'lucide-react';
 import { ROBOT_PLATFORMS } from '../data/roboticsData';
 import { AlgorOhmLogo } from './ui/AlgorOhmLogo';
 
 interface FooterProps {
   onSelectRobot: (robotId: string) => void;
-  onDownloadStandaloneHtml: () => void;
 }
 
-export const Footer: React.FC<FooterProps> = ({
-  onSelectRobot,
-  onDownloadStandaloneHtml,
-}) => {
+export const Footer: React.FC<FooterProps> = ({ onSelectRobot }) => {
   return (
     <footer className="border-t border-slate-800 bg-[#05070B] py-16 text-sm text-slate-400">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -124,15 +120,6 @@ export const Footer: React.FC<FooterProps> = ({
             © {new Date().getFullYear()} ALGOROHM ROBOTICS INC. ALL RIGHTS RESERVED.
           </div>
           <div className="flex items-center gap-4">
-            <button
-              type="button"
-              onClick={onDownloadStandaloneHtml}
-              className="inline-flex items-center gap-1.5 text-amber-400 hover:text-amber-300 transition-colors cursor-pointer focus-visible:outline-2 focus-visible:outline-amber-400 rounded px-1"
-            >
-              <Download className="w-3.5 h-3.5" aria-hidden="true" />
-              <span>Download Single-File .HTML</span>
-            </button>
-            <span aria-hidden="true">•</span>
             <span className="text-emerald-400">● TELEMETRY BUS NOMINAL (4.00 kHz)</span>
           </div>
         </div>

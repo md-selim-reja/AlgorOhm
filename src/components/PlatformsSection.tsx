@@ -4,7 +4,6 @@ import {
   CheckCircle2,
   ChevronRight,
   Cpu,
-  Eye,
   Sliders,
   Zap,
 } from 'lucide-react';
@@ -17,16 +16,12 @@ import { SpotlightCard } from './ui/SpotlightCard';
 interface PlatformsSectionProps {
   selectedRobotId: string;
   onSelectRobot: (robotId: string) => void;
-  cvHudEnabled: boolean;
-  onToggleCvHud: () => void;
   onOpenPilotForRobot: (robot: RobotPlatform) => void;
 }
 
 export const PlatformsSection: React.FC<PlatformsSectionProps> = ({
   selectedRobotId,
   onSelectRobot,
-  cvHudEnabled,
-  onToggleCvHud,
   onOpenPilotForRobot,
 }) => {
   const payloadSliderId = useId();
@@ -167,30 +162,6 @@ export const PlatformsSection: React.FC<PlatformsSectionProps> = ({
                       ● {robot.availability}
                     </span>
                   </div>
-
-                  {/* Computer Vision HUD Overlay */}
-                  {cvHudEnabled && (
-                    <div
-                      className="pointer-events-none absolute inset-4 border border-dashed border-cyan-400/60 rounded-lg"
-                      aria-hidden="true"
-                    >
-                      <div className="absolute -top-2.5 left-3 px-1.5 bg-slate-950 text-[10px] font-mono text-cyan-400">
-                        {robot.cvBoundingBox} [{robot.cvConfidence}]
-                      </div>
-                      {robot.cvKeypoints.map((kp) => (
-                        <div
-                          key={kp.label}
-                          style={{ left: `${kp.x}%`, top: `${kp.y}%` }}
-                          className="absolute flex items-center gap-1 -translate-x-1/2 -translate-y-1/2"
-                        >
-                          <span className="w-2.5 h-2.5 rounded-full border border-amber-400 bg-amber-400/30" />
-                          <span className="px-1 py-0.5 rounded bg-slate-950/90 text-[9px] font-mono text-amber-300 border border-amber-500/30">
-                            {kp.label}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
 
                   {/* Bottom Title Overlay */}
                   <div className="absolute bottom-3 left-5 right-5 flex items-end justify-between">
@@ -591,25 +562,6 @@ export const PlatformsSection: React.FC<PlatformsSectionProps> = ({
                   >
                     <span>Reserve {selectedRobot.name} Pilot</span>
                     <ChevronRight className="w-3.5 h-3.5" aria-hidden="true" />
-                  </button>
-                </div>
-
-                {/* Vision HUD Quick Toggle Reminder */}
-                <div className="mt-3 flex items-center justify-between text-[11px] font-mono text-slate-400">
-                  <span>
-                    Synthetic keypoint overlays are currently{' '}
-                    <strong className="text-cyan-300">
-                      {cvHudEnabled ? 'ENABLED' : 'DISABLED'}
-                    </strong>
-                    .
-                  </span>
-                  <button
-                    type="button"
-                    onClick={onToggleCvHud}
-                    className="inline-flex items-center gap-1 text-cyan-400 hover:text-cyan-300 cursor-pointer"
-                  >
-                    <Eye className="w-3 h-3" aria-hidden="true" />
-                    <span>{cvHudEnabled ? 'Hide Vision HUD' : 'Show Vision HUD'}</span>
                   </button>
                 </div>
               </div>

@@ -22,7 +22,6 @@ import {
 
 export default function App() {
   const [selectedRobotId, setSelectedRobotId] = useState<string>('ohm-x1');
-  const [cvHudEnabled, setCvHudEnabled] = useState<boolean>(true);
 
   // Modals & Interactive Drawers
   const [demoModalOpen, setDemoModalOpen] = useState<boolean>(false);
@@ -39,10 +38,6 @@ export default function App() {
     notes: '',
   });
   const [pilotSubmitted, setPilotSubmitted] = useState<boolean>(false);
-
-  const handleToggleCvHud = useCallback(() => {
-    setCvHudEnabled((prev) => !prev);
-  }, []);
 
   const handleOpenDemoModal = useCallback(() => {
     setPilotSubmitted(false);
@@ -99,41 +94,6 @@ export default function App() {
     setPilotSubmitted(true);
   }, []);
 
-  // Download Single-File Standalone HTML Bundle
-  const handleDownloadStandaloneHtml = useCallback(async () => {
-    try {
-      const response = await fetch(
-        '/assets/aistudio/AlgorOhm-Robotics-Platform_fbd731f9.html'
-      );
-      if (response.ok) {
-        const htmlContent = await response.text();
-        const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = 'AlgorOhm-Robotics-Platform.html';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-        return;
-      }
-    } catch {
-      // Fallback to serializing current document if static asset fetch fails
-    }
-
-    const serializedHtml = `<!DOCTYPE html>\n${document.documentElement.outerHTML}`;
-    const blob = new Blob([serializedHtml], { type: 'text/html;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'AlgorOhm-Robotics-Platform.html';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-  }, []);
-
   return (
     <div className="min-h-screen bg-[#07090E] text-slate-100 selection:bg-cyan-500/30 selection:text-cyan-200 font-sans">
       {/* Accessibility: Skip to Main Content Link */}
@@ -145,12 +105,7 @@ export default function App() {
       </a>
 
       {/* Top Sticky Navigation Bar */}
-      <Navbar
-        cvHudEnabled={cvHudEnabled}
-        onToggleCvHud={handleToggleCvHud}
-        onDownloadStandaloneHtml={handleDownloadStandaloneHtml}
-        onOpenDemoModal={handleOpenDemoModal}
-      />
+      <Navbar onOpenDemoModal={handleOpenDemoModal} />
 
       {/* Semantic Main Content Landmark */}
       <main id="main-content">
@@ -161,8 +116,6 @@ export default function App() {
         <PlatformsSection
           selectedRobotId={selectedRobotId}
           onSelectRobot={setSelectedRobotId}
-          cvHudEnabled={cvHudEnabled}
-          onToggleCvHud={handleToggleCvHud}
           onOpenPilotForRobot={handleOpenPilotForRobot}
         />
 
@@ -170,11 +123,7 @@ export default function App() {
         <ArchitectureSection />
 
         {/* 04. Field Deployment & R&D Lab Optics Gallery */}
-        <FieldGallerySection
-          cvHudEnabled={cvHudEnabled}
-          onToggleCvHud={handleToggleCvHud}
-          onOpenLightbox={setLightboxPhoto}
-        />
+        <FieldGallerySection onOpenLightbox={setLightboxPhoto} />
 
         {/* 05. Live Fleet ROI & Payback Configurator */}
         <RoiConfiguratorSection onExportProposal={handleExportRoiProposal} />
@@ -184,10 +133,7 @@ export default function App() {
       </main>
 
       {/* Semantic Footer */}
-      <Footer
-        onSelectRobot={setSelectedRobotId}
-        onDownloadStandaloneHtml={handleDownloadStandaloneHtml}
-      />
+      <Footer onSelectRobot={setSelectedRobotId} />
 
       {/* Accessible Modals (Pilot Evaluation, Whitepaper Reader, High-Res Optics Lightbox) */}
       <Modals
