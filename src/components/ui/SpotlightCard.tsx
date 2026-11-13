@@ -6,6 +6,8 @@ interface SpotlightCardProps {
   accentColor?: string;
   onClick?: () => void;
   ariaLabel?: string;
+  itemScope?: boolean;
+  itemType?: string;
 }
 
 export const SpotlightCard: React.FC<SpotlightCardProps> = ({
@@ -14,6 +16,8 @@ export const SpotlightCard: React.FC<SpotlightCardProps> = ({
   accentColor = 'rgba(34, 211, 238, 0.13)',
   onClick,
   ariaLabel,
+  itemScope,
+  itemType,
 }) => {
   const [coords, setCoords] = useState({ x: -300, y: -300 });
   const [hovered, setHovered] = useState(false);
@@ -38,6 +42,8 @@ export const SpotlightCard: React.FC<SpotlightCardProps> = ({
       role={onClick ? 'button' : undefined}
       tabIndex={onClick ? 0 : undefined}
       aria-label={ariaLabel}
+      itemScope={itemScope}
+      itemType={itemType}
       onMouseMove={handleMouseMove}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}

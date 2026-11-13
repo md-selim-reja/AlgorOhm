@@ -40,18 +40,28 @@ export const ResearchSection: React.FC<ResearchSectionProps> = ({
           {WHITEPAPERS.map((paper) => (
             <article
               key={paper.id}
+              itemScope
+              itemType="https://schema.org/TechArticle"
               className="rounded-2xl border border-slate-800 bg-slate-900/50 p-5 sm:p-6 flex flex-col justify-between hover:border-cyan-500/40 transition-all"
             >
               <div className="space-y-3">
                 <div className="flex items-center justify-between gap-2 text-[10px] font-mono text-slate-400">
-                  <span className="text-cyan-400">{paper.category}</span>
+                  <span itemProp="articleSection" className="text-cyan-400">
+                    {paper.category}
+                  </span>
                   <span className="shrink-0">{paper.readTime}</span>
                 </div>
                 <div className="text-[11px] font-mono text-slate-400">{paper.date}</div>
-                <h3 className="text-base sm:text-lg font-bold text-white leading-snug font-display">
+                <h3
+                  itemProp="headline"
+                  className="text-base sm:text-lg font-bold text-white leading-snug font-display"
+                >
                   {paper.title}
                 </h3>
-                <p className="text-xs text-slate-300 leading-relaxed line-clamp-4">
+                <p
+                  itemProp="abstract"
+                  className="text-xs text-slate-300 leading-relaxed line-clamp-4"
+                >
                   {paper.abstract}
                 </p>
               </div>

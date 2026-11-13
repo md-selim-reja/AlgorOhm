@@ -13,6 +13,7 @@ import { Navbar } from './components/Navbar';
 import { PlatformsSection } from './components/PlatformsSection';
 import { ResearchSection } from './components/ResearchSection';
 import { RoiConfiguratorSection } from './components/RoiConfiguratorSection';
+import { SeoGeoManager } from './components/SeoGeoManager';
 import {
   FieldGalleryItem,
   PilotFormState,
@@ -96,6 +97,13 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-[#07090E] text-slate-100 selection:bg-cyan-500/30 selection:text-cyan-200 font-sans">
+      {/* Non-Visual Dynamic SEO / AEO / GEO Head & JSON-LD Synchronizer */}
+      <SeoGeoManager
+        selectedRobotId={selectedRobotId}
+        selectedWhitepaper={selectedWhitepaper}
+        lightboxPhoto={lightboxPhoto}
+      />
+
       {/* Accessibility: Skip to Main Content Link */}
       <a
         href="#main-content"

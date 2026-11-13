@@ -121,6 +121,8 @@ export const PlatformsSection: React.FC<PlatformsSectionProps> = ({
             return (
               <SpotlightCard
                 key={robot.id}
+                itemScope
+                itemType="https://schema.org/Product"
                 onClick={() => {
                   onSelectRobot(robot.id);
                   document
@@ -140,6 +142,7 @@ export const PlatformsSection: React.FC<PlatformsSectionProps> = ({
                     src={robot.image}
                     alt={`${robot.name} — ${robot.tagline}`}
                     fallbackLabel={robot.cvBoundingBox}
+                    itemProp="image"
                     className="w-full h-full object-cover object-center transition-transform duration-700 hover:scale-105"
                   />
                   <div
@@ -149,7 +152,10 @@ export const PlatformsSection: React.FC<PlatformsSectionProps> = ({
 
                   {/* Top Badges */}
                   <div className="absolute top-3 left-3 right-3 flex flex-wrap items-center justify-between gap-1.5">
-                    <span className="px-2.5 py-1 rounded-md text-[10px] sm:text-[11px] font-mono uppercase tracking-wider bg-slate-950/85 border border-slate-700/80 text-cyan-300 backdrop-blur-md">
+                    <span
+                      itemProp="sku"
+                      className="px-2.5 py-1 rounded-md text-[10px] sm:text-[11px] font-mono uppercase tracking-wider bg-slate-950/85 border border-slate-700/80 text-cyan-300 backdrop-blur-md"
+                    >
                       {robot.codename}
                     </span>
                     <span
@@ -166,10 +172,16 @@ export const PlatformsSection: React.FC<PlatformsSectionProps> = ({
                   {/* Bottom Title Overlay */}
                   <div className="absolute bottom-3 left-4 right-4 sm:left-5 sm:right-5 flex flex-col sm:flex-row sm:items-end justify-between gap-2">
                     <div className="min-w-0">
-                      <span className="block text-[11px] sm:text-xs font-mono text-amber-400 uppercase tracking-wider truncate">
+                      <span
+                        itemProp="category"
+                        className="block text-[11px] sm:text-xs font-mono text-amber-400 uppercase tracking-wider truncate"
+                      >
                         {robot.category}
                       </span>
-                      <h3 className="text-xl sm:text-2xl font-bold text-white tracking-tight font-display truncate">
+                      <h3
+                        itemProp="name"
+                        className="text-xl sm:text-2xl font-bold text-white tracking-tight font-display truncate"
+                      >
                         {robot.name}
                       </h3>
                     </div>
@@ -182,7 +194,10 @@ export const PlatformsSection: React.FC<PlatformsSectionProps> = ({
 
                 {/* Card Body */}
                 <div className="p-4 sm:p-6 flex-1 flex flex-col justify-between space-y-4 sm:space-y-5">
-                  <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                  <p
+                    itemProp="description"
+                    className="text-xs sm:text-sm text-slate-300 leading-relaxed"
+                  >
                     {robot.description}
                   </p>
 
