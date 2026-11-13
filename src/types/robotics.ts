@@ -141,3 +141,13 @@ export interface PilotFormState {
   environment: string;
   notes: string;
 }
+
+export type WebsitePageId =
+  | 'home'
+  | 'platforms'
+  | 'inspector'
+  | 'architecture'
+  | 'field-gallery'
+  | 'roi-configurator'
+  | 'research';
+

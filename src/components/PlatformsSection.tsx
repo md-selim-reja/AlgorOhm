@@ -17,12 +17,16 @@ interface PlatformsSectionProps {
   selectedRobotId: string;
   onSelectRobot: (robotId: string) => void;
   onOpenPilotForRobot: (robot: RobotPlatform) => void;
+  viewMode?: 'all' | 'platforms-only' | 'inspector-only';
+  onNavigateToInspector?: () => void;
 }
 
 export const PlatformsSection: React.FC<PlatformsSectionProps> = ({
   selectedRobotId,
   onSelectRobot,
   onOpenPilotForRobot,
+  viewMode = 'all',
+  onNavigateToInspector,
 }) => {
   const payloadSliderId = useId();
   const dutyCycleSliderId = useId();
@@ -63,9 +67,13 @@ export const PlatformsSection: React.FC<PlatformsSectionProps> = ({
   const animPowerDraw = useAnimatedNumber(inspectorSimulation.avgPowerDraw, 280, 0);
   const animStatorTemp = useAnimatedNumber(inspectorSimulation.statorTempC, 280, 0);
 
+  const showPlatforms = viewMode === 'all' || viewMode === 'platforms-only';
+  const showInspector = viewMode === 'all' || viewMode === 'inspector-only';
+
   return (
     <>
       {/* Flagship Robotic Platforms Grid */}
+      {showPlatforms && (
       <section
         id="platforms"
         aria-labelledby="platforms-heading"
@@ -125,9 +133,13 @@ export const PlatformsSection: React.FC<PlatformsSectionProps> = ({
                 itemType="https://schema.org/Product"
                 onClick={() => {
                   onSelectRobot(robot.id);
-                  document
-                    .getElementById('inspector')
-                    ?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                  if (onNavigateToInspector) {
+                    onNavigateToInspector();
+                  } else {
+                    document
+                      .getElementById('inspector')
+                      ?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                  }
                 }}
                 ariaLabel={`Inspect ${robot.name} specifications`}
                 className={`rounded-2xl border cursor-pointer ${
@@ -254,8 +266,10 @@ export const PlatformsSection: React.FC<PlatformsSectionProps> = ({
           })}
         </div>
       </section>
+      )}
 
       {/* Interactive Deep Spec Inspector & Actuator Breakdown */}
+      {showInspector && (
       <section
         id="inspector"
         aria-labelledby="inspector-heading"
@@ -610,6 +624,7 @@ export const PlatformsSection: React.FC<PlatformsSectionProps> = ({
           </div>
         </div>
       </section>
+      )}
     </>
   );
 };

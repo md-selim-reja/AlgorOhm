@@ -1,29 +1,44 @@
 import React, { useState } from 'react';
 import { ArrowUpRight, Menu, X } from 'lucide-react';
+import { WebsitePageId } from '../types/robotics';
 import { AlgorOhmLogo } from './ui/AlgorOhmLogo';
 
 interface NavbarProps {
+  activePage: WebsitePageId;
+  onNavigate: (page: WebsitePageId) => void;
   onOpenDemoModal: () => void;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ onOpenDemoModal }) => {
+export const WEBSITE_NAV_ITEMS: { id: WebsitePageId; label: string; code: string }[] = [
+  { id: 'home', label: 'Overview', code: '00' },
+  { id: 'platforms', label: 'Platforms', code: '01' },
+  { id: 'inspector', label: 'Spec Inspector', code: '02' },
+  { id: 'architecture', label: 'Algor+Ohm Stack', code: '03' },
+  { id: 'field-gallery', label: 'Field Optics', code: '04' },
+  { id: 'roi-configurator', label: 'Fleet ROI Sim', code: '05' },
+  { id: 'research', label: 'Monographs', code: '06' },
+];
+
+export const Navbar: React.FC<NavbarProps> = ({
+  activePage,
+  onNavigate,
+  onOpenDemoModal,
+}) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const navLinks = [
-    { href: '#platforms', label: 'Platforms' },
-    { href: '#inspector', label: 'Spec Inspector' },
-    { href: '#architecture', label: 'Algor+Ohm Stack' },
-    { href: '#field-gallery', label: 'Field Optics' },
-    { href: '#roi-configurator', label: 'Fleet ROI Sim' },
-    { href: '#research', label: 'Monographs' },
-  ];
+  const handleNavClick = (e: React.MouseEvent, page: WebsitePageId) => {
+    e.preventDefault();
+    onNavigate(page);
+    setMobileMenuOpen(false);
+  };
 
   return (
     <header className="sticky top-0 z-50 border-b border-slate-800/80 bg-[#07090E]/90 backdrop-blur-xl">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between gap-3">
         {/* Brand Lockup */}
         <a
-          href="#"
+          href="#home"
+          onClick={(e) => handleNavClick(e, 'home')}
           className="flex items-center gap-2.5 sm:gap-3.5 min-w-0 group focus-visible:outline-2 focus-visible:outline-cyan-400 rounded-lg"
           aria-label="AlgorOhm Robotics Home"
         >
@@ -45,20 +60,29 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenDemoModal }) => {
           </div>
         </a>
 
-        {/* Desktop Nav Links */}
+        {/* Desktop Multi-Page Navigation Links */}
         <nav
-          aria-label="Primary Navigation"
-          className="hidden lg:flex items-center gap-5 xl:gap-7 text-sm font-medium text-slate-300 shrink-0"
+          aria-label="Primary Website Navigation"
+          className="hidden lg:flex items-center gap-1.5 xl:gap-2 text-sm font-medium text-slate-300 shrink-0"
         >
-          {navLinks.map((link) => (
-            <a
-              key={link.href}
-              href={link.href}
-              className="hover:text-cyan-400 transition-colors focus-visible:outline-2 focus-visible:outline-cyan-400 rounded px-1 py-0.5 whitespace-nowrap"
-            >
-              {link.label}
-            </a>
-          ))}
+          {WEBSITE_NAV_ITEMS.map((item) => {
+            const isActive = activePage === item.id;
+            return (
+              <a
+                key={item.id}
+                href={`#${item.id}`}
+                onClick={(e) => handleNavClick(e, item.id)}
+                aria-current={isActive ? 'page' : undefined}
+                className={`px-3 py-1.5 rounded-lg text-xs xl:text-sm font-medium transition-all whitespace-nowrap focus-visible:outline-2 focus-visible:outline-cyan-400 ${
+                  isActive
+                    ? 'bg-cyan-500/15 text-cyan-300 border border-cyan-500/40 font-semibold'
+                    : 'text-slate-300 hover:text-cyan-400 hover:bg-slate-900/60 border border-transparent'
+                }`}
+              >
+                {item.label}
+              </a>
+            );
+          })}
         </nav>
 
         {/* Primary Action CTA (Tablet & Desktop) */}
@@ -94,20 +118,29 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenDemoModal }) => {
       {mobileMenuOpen && (
         <nav
           id="mobile-navigation-drawer"
-          aria-label="Mobile Navigation"
+          aria-label="Mobile Website Navigation"
           className="lg:hidden border-t border-slate-800 bg-[#0A0E17] px-4 sm:px-6 py-4 space-y-3"
         >
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-sm">
-            {navLinks.map((link) => (
-              <a
-                key={link.href}
-                href={link.href}
-                onClick={() => setMobileMenuOpen(false)}
-                className="px-3 py-2.5 rounded-lg bg-slate-900/70 border border-slate-800/70 text-slate-200 hover:text-cyan-400 hover:border-cyan-500/40 transition-colors flex items-center"
-              >
-                {link.label}
-              </a>
-            ))}
+            {WEBSITE_NAV_ITEMS.map((item) => {
+              const isActive = activePage === item.id;
+              return (
+                <a
+                  key={item.id}
+                  href={`#${item.id}`}
+                  onClick={(e) => handleNavClick(e, item.id)}
+                  aria-current={isActive ? 'page' : undefined}
+                  className={`px-3 py-2.5 rounded-lg border transition-colors flex items-center justify-between ${
+                    isActive
+                      ? 'bg-cyan-500/15 border-cyan-500/50 text-cyan-300 font-semibold'
+                      : 'bg-slate-900/70 border-slate-800/70 text-slate-200 hover:text-cyan-400 hover:border-cyan-500/40'
+                  }`}
+                >
+                  <span>{item.label}</span>
+                  <span className="text-[10px] font-mono text-slate-500">{item.code}</span>
+                </a>
+              );
+            })}
           </div>
           <div className="pt-2 border-t border-slate-800 sm:hidden">
             <button

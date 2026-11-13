@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { ArchitectureSection } from './components/ArchitectureSection';
 import { FieldGallerySection } from './components/FieldGallerySection';
 import { Footer } from './components/Footer';
@@ -15,13 +15,39 @@ import { ResearchSection } from './components/ResearchSection';
 import { RoiConfiguratorSection } from './components/RoiConfiguratorSection';
 import { SeoGeoManager } from './components/SeoGeoManager';
 import {
+  HomeOverviewPortal,
+  PageBreadcrumbBar,
+  PagePaginationFooter,
+} from './components/WebsiteShell';
+import {
   FieldGalleryItem,
   PilotFormState,
   RobotPlatform,
+  WebsitePageId,
   Whitepaper,
 } from './types/robotics';
 
+const VALID_PAGES: WebsitePageId[] = [
+  'home',
+  'platforms',
+  'inspector',
+  'architecture',
+  'field-gallery',
+  'roi-configurator',
+  'research',
+];
+
+function getInitialPageFromUrl(): WebsitePageId {
+  if (typeof window === 'undefined') return 'home';
+  const hash = window.location.hash.replace('#', '').trim() as WebsitePageId;
+  if (VALID_PAGES.includes(hash)) {
+    return hash;
+  }
+  return 'home';
+}
+
 export default function App() {
+  const [activePage, setActivePage] = useState<WebsitePageId>(getInitialPageFromUrl);
   const [selectedRobotId, setSelectedRobotId] = useState<string>('ohm-x1');
 
   // Modals & Interactive Drawers
@@ -39,6 +65,39 @@ export default function App() {
     notes: '',
   });
   const [pilotSubmitted, setPilotSubmitted] = useState<boolean>(false);
+
+  // Navigate between website pages with URL hash history & smooth scroll-to-top
+  const handleNavigate = useCallback((page: WebsitePageId) => {
+    setActivePage(page);
+    if (typeof window !== 'undefined') {
+      const nextHash = page === 'home' ? '#home' : `#${page}`;
+      if (window.location.hash !== nextHash) {
+        window.history.pushState({ page }, '', nextHash);
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, []);
+
+  // Listen to browser Back/Forward navigation
+  useEffect(() => {
+    const onHashOrPopState = () => {
+      setActivePage(getInitialPageFromUrl());
+    };
+    window.addEventListener('popstate', onHashOrPopState);
+    window.addEventListener('hashchange', onHashOrPopState);
+    return () => {
+      window.removeEventListener('popstate', onHashOrPopState);
+      window.removeEventListener('hashchange', onHashOrPopState);
+    };
+  }, []);
+
+  const handleSelectRobotAndInspect = useCallback(
+    (robotId: string) => {
+      setSelectedRobotId(robotId);
+      handleNavigate('inspector');
+    },
+    [handleNavigate]
+  );
 
   const handleOpenDemoModal = useCallback(() => {
     setPilotSubmitted(false);
@@ -96,9 +155,10 @@ export default function App() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#07090E] text-slate-100 selection:bg-cyan-500/30 selection:text-cyan-200 font-sans">
+    <div className="min-h-screen flex flex-col bg-[#07090E] text-slate-100 selection:bg-cyan-500/30 selection:text-cyan-200 font-sans">
       {/* Non-Visual Dynamic SEO / AEO / GEO Head & JSON-LD Synchronizer */}
       <SeoGeoManager
+        activePage={activePage}
         selectedRobotId={selectedRobotId}
         selectedWhitepaper={selectedWhitepaper}
         lightboxPhoto={lightboxPhoto}
@@ -112,36 +172,68 @@ export default function App() {
         Skip to main content
       </a>
 
-      {/* Top Sticky Navigation Bar */}
-      <Navbar onOpenDemoModal={handleOpenDemoModal} />
+      {/* Top Sticky Multi-Page Website Navigation Bar */}
+      <Navbar
+        activePage={activePage}
+        onNavigate={handleNavigate}
+        onOpenDemoModal={handleOpenDemoModal}
+      />
+
+      {/* Sub-header Breadcrumb & Quick Section Switcher on Dedicated Pages */}
+      <PageBreadcrumbBar activePage={activePage} onNavigate={handleNavigate} />
 
       {/* Semantic Main Content Landmark */}
-      <main id="main-content">
-        {/* Hero Section & Interactive 2D Inverse Kinematics Workbench */}
-        <HeroKinematicBench />
+      <main id="main-content" className="flex-1">
+        {activePage === 'home' && (
+          <>
+            <HeroKinematicBench onNavigate={handleNavigate} />
+            <HomeOverviewPortal
+              selectedRobotId={selectedRobotId}
+              onSelectRobotAndInspect={handleSelectRobotAndInspect}
+              onNavigate={handleNavigate}
+            />
+          </>
+        )}
 
-        {/* 01. Flagship Robotic Platforms Grid & 02. Deep Spec Inspector */}
-        <PlatformsSection
-          selectedRobotId={selectedRobotId}
-          onSelectRobot={setSelectedRobotId}
-          onOpenPilotForRobot={handleOpenPilotForRobot}
-        />
+        {activePage === 'platforms' && (
+          <PlatformsSection
+            selectedRobotId={selectedRobotId}
+            onSelectRobot={setSelectedRobotId}
+            onOpenPilotForRobot={handleOpenPilotForRobot}
+            viewMode="platforms-only"
+            onNavigateToInspector={() => handleNavigate('inspector')}
+          />
+        )}
 
-        {/* 03. Dual-Core Engineering Stack (Algor Neural OS vs Ohm Hardware Core) */}
-        <ArchitectureSection />
+        {activePage === 'inspector' && (
+          <PlatformsSection
+            selectedRobotId={selectedRobotId}
+            onSelectRobot={setSelectedRobotId}
+            onOpenPilotForRobot={handleOpenPilotForRobot}
+            viewMode="inspector-only"
+          />
+        )}
 
-        {/* 04. Field Deployment & R&D Lab Optics Gallery */}
-        <FieldGallerySection onOpenLightbox={setLightboxPhoto} />
+        {activePage === 'architecture' && <ArchitectureSection />}
 
-        {/* 05. Live Fleet ROI & Payback Configurator */}
-        <RoiConfiguratorSection onExportProposal={handleExportRoiProposal} />
+        {activePage === 'field-gallery' && (
+          <FieldGallerySection onOpenLightbox={setLightboxPhoto} />
+        )}
 
-        {/* 06. AlgorOhm Lab Technical Monographs */}
-        <ResearchSection onSelectWhitepaper={setSelectedWhitepaper} />
+        {activePage === 'roi-configurator' && (
+          <RoiConfiguratorSection onExportProposal={handleExportRoiProposal} />
+        )}
+
+        {activePage === 'research' && (
+          <ResearchSection onSelectWhitepaper={setSelectedWhitepaper} />
+        )}
+
+        {/* Website Cross-Page Pagination Footer */}
+        <PagePaginationFooter activePage={activePage} onNavigate={handleNavigate} />
       </main>
 
-      {/* Semantic Footer */}
-      <Footer onSelectRobot={setSelectedRobotId} />
+      {/* Semantic Global Website Footer */}
+      <Footer onSelectRobot={setSelectedRobotId} onNavigate={handleNavigate} />
 
       {/* Accessible Modals (Pilot Evaluation, Whitepaper Reader, High-Res Optics Lightbox) */}
       <Modals

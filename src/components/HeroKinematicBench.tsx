@@ -8,9 +8,15 @@ import {
   RotateCcw,
   Sliders,
 } from 'lucide-react';
-import { SimMode, TelemetryState } from '../types/robotics';
+import { SimMode, TelemetryState, WebsitePageId } from '../types/robotics';
 
-export const HeroKinematicBench: React.FC = () => {
+interface HeroKinematicBenchProps {
+  onNavigate?: (page: WebsitePageId) => void;
+}
+
+export const HeroKinematicBench: React.FC<HeroKinematicBenchProps> = ({
+  onNavigate,
+}) => {
   const reachSliderId = useId();
   const elevationSliderId = useId();
   const payloadSliderId = useId();
@@ -428,6 +434,12 @@ export const HeroKinematicBench: React.FC = () => {
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 pt-1">
               <a
                 href="#platforms"
+                onClick={(e) => {
+                  if (onNavigate) {
+                    e.preventDefault();
+                    onNavigate('platforms');
+                  }
+                }}
                 className="inline-flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-xl font-semibold text-sm bg-cyan-400 text-slate-950 hover:bg-cyan-300 transition-all focus-visible:outline-2 focus-visible:outline-cyan-300"
               >
                 <span>Explore Robotic Fleet</span>
@@ -435,6 +447,12 @@ export const HeroKinematicBench: React.FC = () => {
               </a>
               <a
                 href="#architecture"
+                onClick={(e) => {
+                  if (onNavigate) {
+                    e.preventDefault();
+                    onNavigate('architecture');
+                  }
+                }}
                 className="inline-flex items-center justify-center gap-2.5 px-6 py-3.5 rounded-xl font-semibold text-sm border border-slate-700 bg-slate-900/80 text-slate-200 hover:border-cyan-500/50 hover:text-white transition-all focus-visible:outline-2 focus-visible:outline-cyan-400"
               >
                 <Sliders className="w-4 h-4 text-amber-400" aria-hidden="true" />

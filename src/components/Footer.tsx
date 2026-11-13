@@ -1,24 +1,35 @@
 import React from 'react';
 import { Award, Globe, MapPin, ShieldCheck } from 'lucide-react';
 import { ROBOT_PLATFORMS } from '../data/roboticsData';
+import { WebsitePageId } from '../types/robotics';
 import { AlgorOhmLogo } from './ui/AlgorOhmLogo';
 
 interface FooterProps {
   onSelectRobot: (robotId: string) => void;
+  onNavigate: (page: WebsitePageId) => void;
 }
 
-export const Footer: React.FC<FooterProps> = ({ onSelectRobot }) => {
+export const Footer: React.FC<FooterProps> = ({ onSelectRobot, onNavigate }) => {
+  const handlePageLink = (e: React.MouseEvent, page: WebsitePageId) => {
+    e.preventDefault();
+    onNavigate(page);
+  };
+
   return (
     <footer className="border-t border-slate-800 bg-[#05070B] py-12 sm:py-16 text-sm text-slate-400">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-8 lg:gap-10 pb-10 sm:pb-12 border-b border-slate-800/80">
           <div className="sm:col-span-2 lg:col-span-2 space-y-4">
-            <div className="flex items-center gap-3">
+            <a
+              href="#home"
+              onClick={(e) => handlePageLink(e, 'home')}
+              className="inline-flex items-center gap-3 focus-visible:outline-2 focus-visible:outline-cyan-400 rounded-lg"
+            >
               <AlgorOhmLogo className="w-8 h-8 sm:w-9 sm:h-9 shrink-0" />
               <span className="text-lg sm:text-xl font-bold tracking-tight text-white font-display">
                 ALGOR<span className="text-cyan-400">OHM</span> ROBOTICS
               </span>
-            </div>
+            </a>
             <p className="text-xs text-slate-400 max-w-sm leading-relaxed">
               AlgorOhm Robotics Inc. engineers vertically integrated embodied physical AI systems
               — combining deterministic edge neural compute with ultra-low impedance
@@ -48,7 +59,11 @@ export const Footer: React.FC<FooterProps> = ({ onSelectRobot }) => {
                 <li key={r.id}>
                   <a
                     href="#inspector"
-                    onClick={() => onSelectRobot(r.id)}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      onSelectRobot(r.id);
+                      onNavigate('inspector');
+                    }}
                     className="hover:text-cyan-400 transition-colors focus-visible:outline-2 focus-visible:outline-cyan-400 rounded inline-block py-0.5"
                   >
                     {r.name}
@@ -60,39 +75,52 @@ export const Footer: React.FC<FooterProps> = ({ onSelectRobot }) => {
 
           <div>
             <h3 className="text-xs font-mono uppercase tracking-wider text-white font-semibold mb-3">
-              Algor × Ohm Stack
+              Website Directory
             </h3>
             <ul className="space-y-2.5 text-xs">
               <li>
                 <a
-                  href="#architecture"
+                  href="#platforms"
+                  onClick={(e) => handlePageLink(e, 'platforms')}
                   className="hover:text-cyan-400 transition-colors focus-visible:outline-2 focus-visible:outline-cyan-400 rounded inline-block py-0.5"
                 >
-                  AlgorVLA™ Visuomotor Engine
+                  01. Autonomous Fleet Catalog
                 </a>
               </li>
               <li>
                 <a
                   href="#architecture"
+                  onClick={(e) => handlePageLink(e, 'architecture')}
                   className="hover:text-cyan-400 transition-colors focus-visible:outline-2 focus-visible:outline-cyan-400 rounded inline-block py-0.5"
                 >
-                  Ohm-QDD™ Halbach Actuators
+                  03. Algor × Ohm Dual-Core Stack
                 </a>
               </li>
               <li>
                 <a
-                  href="#architecture"
+                  href="#field-gallery"
+                  onClick={(e) => handlePageLink(e, 'field-gallery')}
                   className="hover:text-cyan-400 transition-colors focus-visible:outline-2 focus-visible:outline-cyan-400 rounded inline-block py-0.5"
                 >
-                  SwarmMesh™ VDA 5050 Fleet
+                  04. Field Deployment Optics
                 </a>
               </li>
               <li>
                 <a
                   href="#roi-configurator"
+                  onClick={(e) => handlePageLink(e, 'roi-configurator')}
                   className="hover:text-cyan-400 transition-colors focus-visible:outline-2 focus-visible:outline-cyan-400 rounded inline-block py-0.5"
                 >
-                  Enterprise RaaS Calculator
+                  05. Enterprise RaaS Calculator
+                </a>
+              </li>
+              <li>
+                <a
+                  href="#research"
+                  onClick={(e) => handlePageLink(e, 'research')}
+                  className="hover:text-cyan-400 transition-colors focus-visible:outline-2 focus-visible:outline-cyan-400 rounded inline-block py-0.5"
+                >
+                  06. Lab Technical Monographs
                 </a>
               </li>
             </ul>

@@ -1,8 +1,9 @@
 import React, { useEffect } from 'react';
 import { ROBOT_PLATFORMS } from '../data/roboticsData';
-import { FieldGalleryItem, Whitepaper } from '../types/robotics';
+import { FieldGalleryItem, WebsitePageId, Whitepaper } from '../types/robotics';
 
 interface SeoGeoManagerProps {
+  activePage: WebsitePageId;
   selectedRobotId: string;
   selectedWhitepaper: Whitepaper | null;
   lightboxPhoto: FieldGalleryItem | null;
@@ -12,12 +13,45 @@ const DEFAULT_TITLE = 'AlgorOhm Robotics — Neural Compute × Physical Actuatio
 const DEFAULT_DESCRIPTION =
   'Embodied Physical AI systems fusing deterministic edge neural compute with sub-milliohm Silicon-Carbide QDD actuators for industrial humanoids, AMRs, and precision manipulators.';
 
-/**
- * Non-visual SEO / AEO / GEO head manager.
- * Dynamically synchronizes document.title, meta description, and active entity JSON-LD
- * as users inspect specific robotic platforms or technical monographs, without altering UI.
- */
+const PAGE_SEO_META: Record<WebsitePageId, { title: string; description: string }> = {
+  home: {
+    title: DEFAULT_TITLE,
+    description: DEFAULT_DESCRIPTION,
+  },
+  platforms: {
+    title: 'Autonomous Robotic Platforms — Ohm-X1, Vortex-AMR, Kinetix-7, Strider-Q8 | AlgorOhm',
+    description:
+      'Explore AlgorOhm production-grade autonomous platforms: Ohm-X1 Humanoid, Vortex-AMR 400, Kinetix-7 Axis Arm, and Strider-Q8 Quadruped.',
+  },
+  inspector: {
+    title: 'Deep Hardware & Impedance Spec Inspector | AlgorOhm Robotics',
+    description:
+      'Inspect unit telemetry, electro-mechanical datasheets, 100 kHz SiC FOC actuator breakdowns, and live payload × runtime simulations.',
+  },
+  architecture: {
+    title: 'Algor™ Neural OS × Ohm™ Hardware Core Architecture | AlgorOhm Robotics',
+    description:
+      'Vertically integrated robotics architecture pairing 4.0 kHz AlgorOS visuomotor policies with 0.078 mΩ Silicon-Carbide QDD Halbach stators.',
+  },
+  'field-gallery': {
+    title: 'Field Deployment & R&D Lab Optics Gallery | AlgorOhm Robotics',
+    description:
+      'Real-world industrial deployments across ISO Class 3 semiconductor cleanrooms, EV spot-welding lines, and Zurich electromechanical torture benches.',
+  },
+  'roi-configurator': {
+    title: 'Enterprise Fleet ROI & Payback Simulator | AlgorOhm Robotics',
+    description:
+      'Calculate CAPEX payback months, 5-year net OPEX savings, and shift throughput gains for autonomous AlgorOhm robot fleets.',
+  },
+  research: {
+    title: 'Peer-Reviewed Technical Monographs & Whitepapers | AlgorOhm Research',
+    description:
+      'Technical monographs on 100Hz VLA to 4kHz WB-MPC impedance control, sub-milliohm QDD stators, and decentralized VDA 5050 fleet consensus.',
+  },
+};
+
 export const SeoGeoManager: React.FC<SeoGeoManagerProps> = ({
+  activePage,
   selectedRobotId,
   selectedWhitepaper,
   lightboxPhoto,
@@ -26,8 +60,8 @@ export const SeoGeoManager: React.FC<SeoGeoManagerProps> = ({
     const activeRobot =
       ROBOT_PLATFORMS.find((r) => r.id === selectedRobotId) || ROBOT_PLATFORMS[0];
 
-    let nextTitle = DEFAULT_TITLE;
-    let nextDescription = DEFAULT_DESCRIPTION;
+    let nextTitle = PAGE_SEO_META[activePage]?.title || DEFAULT_TITLE;
+    let nextDescription = PAGE_SEO_META[activePage]?.description || DEFAULT_DESCRIPTION;
 
     if (selectedWhitepaper) {
       nextTitle = `${selectedWhitepaper.title} | AlgorOhm Research`;
@@ -35,8 +69,8 @@ export const SeoGeoManager: React.FC<SeoGeoManagerProps> = ({
     } else if (lightboxPhoto) {
       nextTitle = `${lightboxPhoto.title} (${lightboxPhoto.location}) | AlgorOhm Robotics`;
       nextDescription = lightboxPhoto.caption;
-    } else if (activeRobot) {
-      nextTitle = `${activeRobot.name} (${activeRobot.specs.peakTorque}, ${activeRobot.specs.computePower}) | AlgorOhm Robotics`;
+    } else if (activePage === 'inspector' && activeRobot) {
+      nextTitle = `${activeRobot.name} Datasheet & Spec Inspector (${activeRobot.specs.peakTorque}) | AlgorOhm`;
       nextDescription = `${activeRobot.name}: ${activeRobot.description} Peak Torque: ${activeRobot.specs.peakTorque}, Compute: ${activeRobot.specs.computePower}, Repeatability: ${activeRobot.specs.repeatability}.`;
     }
 
@@ -57,7 +91,6 @@ export const SeoGeoManager: React.FC<SeoGeoManagerProps> = ({
       ogDescMeta.setAttribute('content', nextDescription);
     }
 
-    // Inject/update dynamic active-entity JSON-LD script for real-time AEO/GEO inspection
     const scriptId = 'algorohm-dynamic-entity-jsonld';
     let scriptEl = document.getElementById(scriptId) as HTMLScriptElement | null;
     if (!scriptEl) {
@@ -98,7 +131,7 @@ export const SeoGeoManager: React.FC<SeoGeoManagerProps> = ({
     };
 
     scriptEl.textContent = JSON.stringify(activeEntitySchema);
-  }, [selectedRobotId, selectedWhitepaper, lightboxPhoto]);
+  }, [activePage, selectedRobotId, selectedWhitepaper, lightboxPhoto]);
 
   return null;
 };
