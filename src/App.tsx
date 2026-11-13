@@ -16,7 +16,7 @@ import { RoiConfiguratorSection } from './components/RoiConfiguratorSection';
 import { SeoGeoManager } from './components/SeoGeoManager';
 import {
   HomeOverviewPortal,
-  PageBreadcrumbBar,
+  PageHeroHeader,
   PagePaginationFooter,
 } from './components/WebsiteShell';
 import {
@@ -27,27 +27,24 @@ import {
   Whitepaper,
 } from './types/robotics';
 
-const VALID_PAGES: WebsitePageId[] = [
-  'home',
-  'platforms',
-  'inspector',
-  'architecture',
-  'field-gallery',
-  'roi-configurator',
-  'research',
-];
-
-function getInitialPageFromUrl(): WebsitePageId {
+function resolvePageFromHash(): WebsitePageId {
   if (typeof window === 'undefined') return 'home';
-  const hash = window.location.hash.replace('#', '').trim() as WebsitePageId;
-  if (VALID_PAGES.includes(hash)) {
-    return hash;
+  const rawHash = window.location.hash.replace('#', '').trim().toLowerCase();
+  if (rawHash === 'platforms' || rawHash === 'inspector') return 'platforms';
+  if (rawHash === 'architecture') return 'architecture';
+  if (
+    rawHash === 'deployments' ||
+    rawHash === 'field-gallery' ||
+    rawHash === 'roi-configurator'
+  ) {
+    return 'deployments';
   }
+  if (rawHash === 'research') return 'research';
   return 'home';
 }
 
 export default function App() {
-  const [activePage, setActivePage] = useState<WebsitePageId>(getInitialPageFromUrl);
+  const [activePage, setActivePage] = useState<WebsitePageId>(resolvePageFromHash);
   const [selectedRobotId, setSelectedRobotId] = useState<string>('ohm-x1');
 
   // Modals & Interactive Drawers
@@ -66,22 +63,36 @@ export default function App() {
   });
   const [pilotSubmitted, setPilotSubmitted] = useState<boolean>(false);
 
-  // Navigate between website pages with URL hash history & smooth scroll-to-top
-  const handleNavigate = useCallback((page: WebsitePageId) => {
+  // Navigate between website pages with optional smooth scroll to an anchor section
+  const handleNavigate = useCallback((page: WebsitePageId, sectionId?: string) => {
     setActivePage(page);
     if (typeof window !== 'undefined') {
-      const nextHash = page === 'home' ? '#home' : `#${page}`;
+      const nextHash = sectionId ? `#${sectionId}` : page === 'home' ? '#home' : `#${page}`;
       if (window.location.hash !== nextHash) {
-        window.history.pushState({ page }, '', nextHash);
+        window.history.pushState({ page, sectionId }, '', nextHash);
       }
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+
+      if (sectionId) {
+        requestAnimationFrame(() => {
+          setTimeout(() => {
+            const targetEl = document.getElementById(sectionId);
+            if (targetEl) {
+              targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            } else {
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+          }, 40);
+        });
+      } else {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
     }
   }, []);
 
   // Listen to browser Back/Forward navigation
   useEffect(() => {
     const onHashOrPopState = () => {
-      setActivePage(getInitialPageFromUrl());
+      setActivePage(resolvePageFromHash());
     };
     window.addEventListener('popstate', onHashOrPopState);
     window.addEventListener('hashchange', onHashOrPopState);
@@ -94,7 +105,7 @@ export default function App() {
   const handleSelectRobotAndInspect = useCallback(
     (robotId: string) => {
       setSelectedRobotId(robotId);
-      handleNavigate('inspector');
+      handleNavigate('platforms', 'inspector');
     },
     [handleNavigate]
   );
@@ -155,7 +166,17 @@ export default function App() {
   }, []);
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#07090E] text-slate-100 selection:bg-cyan-500/30 selection:text-cyan-200 font-sans">
+    <div className="min-h-screen flex flex-col bg-[#07090E] bg-tech-grid text-slate-100 selection:bg-cyan-500/30 selection:text-cyan-200 font-sans relative overflow-x-hidden">
+      {/* Persistent Global Ambient Radial Backlights for Coherent Atmosphere Across All Pages */}
+      <div
+        className="pointer-events-none fixed -top-48 left-1/4 w-[520px] h-[520px] rounded-full bg-cyan-500/8 blur-[140px] z-0"
+        aria-hidden="true"
+      />
+      <div
+        className="pointer-events-none fixed top-1/3 right-8 w-[440px] h-[440px] rounded-full bg-amber-500/8 blur-[140px] z-0"
+        aria-hidden="true"
+      />
+
       {/* Non-Visual Dynamic SEO / AEO / GEO Head & JSON-LD Synchronizer */}
       <SeoGeoManager
         activePage={activePage}
@@ -179,11 +200,11 @@ export default function App() {
         onOpenDemoModal={handleOpenDemoModal}
       />
 
-      {/* Sub-header Breadcrumb & Quick Section Switcher on Dedicated Pages */}
-      <PageBreadcrumbBar activePage={activePage} onNavigate={handleNavigate} />
-
       {/* Semantic Main Content Landmark */}
-      <main id="main-content" className="flex-1">
+      <main id="main-content" className="flex-1 relative z-10">
+        {/* Unified Architectural Page Hero Header on Inner Pages */}
+        <PageHeroHeader activePage={activePage} onNavigate={handleNavigate} />
+
         {activePage === 'home' && (
           <>
             <HeroKinematicBench onNavigate={handleNavigate} />
@@ -200,28 +221,17 @@ export default function App() {
             selectedRobotId={selectedRobotId}
             onSelectRobot={setSelectedRobotId}
             onOpenPilotForRobot={handleOpenPilotForRobot}
-            viewMode="platforms-only"
-            onNavigateToInspector={() => handleNavigate('inspector')}
-          />
-        )}
-
-        {activePage === 'inspector' && (
-          <PlatformsSection
-            selectedRobotId={selectedRobotId}
-            onSelectRobot={setSelectedRobotId}
-            onOpenPilotForRobot={handleOpenPilotForRobot}
-            viewMode="inspector-only"
+            viewMode="all"
           />
         )}
 
         {activePage === 'architecture' && <ArchitectureSection />}
 
-        {activePage === 'field-gallery' && (
-          <FieldGallerySection onOpenLightbox={setLightboxPhoto} />
-        )}
-
-        {activePage === 'roi-configurator' && (
-          <RoiConfiguratorSection onExportProposal={handleExportRoiProposal} />
+        {activePage === 'deployments' && (
+          <>
+            <FieldGallerySection onOpenLightbox={setLightboxPhoto} />
+            <RoiConfiguratorSection onExportProposal={handleExportRoiProposal} />
+          </>
         )}
 
         {activePage === 'research' && (

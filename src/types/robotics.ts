@@ -145,9 +145,8 @@ export interface PilotFormState {
 export type WebsitePageId =
   | 'home'
   | 'platforms'
-  | 'inspector'
   | 'architecture'
-  | 'field-gallery'
-  | 'roi-configurator'
+  | 'deployments'
   | 'research';
+
 

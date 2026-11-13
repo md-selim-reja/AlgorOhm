@@ -19,29 +19,20 @@ const PAGE_SEO_META: Record<WebsitePageId, { title: string; description: string 
     description: DEFAULT_DESCRIPTION,
   },
   platforms: {
-    title: 'Autonomous Robotic Platforms — Ohm-X1, Vortex-AMR, Kinetix-7, Strider-Q8 | AlgorOhm',
+    title:
+      'Autonomous Robotic Platforms & Deep Spec Inspector — Ohm-X1, Vortex-AMR, Kinetix-7 | AlgorOhm',
     description:
-      'Explore AlgorOhm production-grade autonomous platforms: Ohm-X1 Humanoid, Vortex-AMR 400, Kinetix-7 Axis Arm, and Strider-Q8 Quadruped.',
-  },
-  inspector: {
-    title: 'Deep Hardware & Impedance Spec Inspector | AlgorOhm Robotics',
-    description:
-      'Inspect unit telemetry, electro-mechanical datasheets, 100 kHz SiC FOC actuator breakdowns, and live payload × runtime simulations.',
+      'Compare AlgorOhm production-grade autonomous platforms (Ohm-X1 Humanoid, Vortex-AMR 400, Kinetix-7 Axis Arm, Strider-Q8) and run live payload × runtime simulations.',
   },
   architecture: {
     title: 'Algor™ Neural OS × Ohm™ Hardware Core Architecture | AlgorOhm Robotics',
     description:
       'Vertically integrated robotics architecture pairing 4.0 kHz AlgorOS visuomotor policies with 0.078 mΩ Silicon-Carbide QDD Halbach stators.',
   },
-  'field-gallery': {
-    title: 'Field Deployment & R&D Lab Optics Gallery | AlgorOhm Robotics',
+  deployments: {
+    title: 'Field Deployments & Enterprise Fleet ROI Simulator | AlgorOhm Robotics',
     description:
-      'Real-world industrial deployments across ISO Class 3 semiconductor cleanrooms, EV spot-welding lines, and Zurich electromechanical torture benches.',
-  },
-  'roi-configurator': {
-    title: 'Enterprise Fleet ROI & Payback Simulator | AlgorOhm Robotics',
-    description:
-      'Calculate CAPEX payback months, 5-year net OPEX savings, and shift throughput gains for autonomous AlgorOhm robot fleets.',
+      'Real-world industrial deployments across ISO Class 3 semiconductor cleanrooms and EV welding lines, paired with an interactive CAPEX payback & OPEX ROI configurator.',
   },
   research: {
     title: 'Peer-Reviewed Technical Monographs & Whitepapers | AlgorOhm Research',
@@ -69,8 +60,8 @@ export const SeoGeoManager: React.FC<SeoGeoManagerProps> = ({
     } else if (lightboxPhoto) {
       nextTitle = `${lightboxPhoto.title} (${lightboxPhoto.location}) | AlgorOhm Robotics`;
       nextDescription = lightboxPhoto.caption;
-    } else if (activePage === 'inspector' && activeRobot) {
-      nextTitle = `${activeRobot.name} Datasheet & Spec Inspector (${activeRobot.specs.peakTorque}) | AlgorOhm`;
+    } else if (activePage === 'platforms' && activeRobot) {
+      nextTitle = `${activeRobot.name} & Fleet Spec Inspector (${activeRobot.specs.peakTorque}) | AlgorOhm Robotics`;
       nextDescription = `${activeRobot.name}: ${activeRobot.description} Peak Torque: ${activeRobot.specs.peakTorque}, Compute: ${activeRobot.specs.computePower}, Repeatability: ${activeRobot.specs.repeatability}.`;
     }
 

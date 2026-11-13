@@ -5,18 +5,20 @@ import { AlgorOhmLogo } from './ui/AlgorOhmLogo';
 
 interface NavbarProps {
   activePage: WebsitePageId;
-  onNavigate: (page: WebsitePageId) => void;
+  onNavigate: (page: WebsitePageId, sectionId?: string) => void;
   onOpenDemoModal: () => void;
 }
 
-export const WEBSITE_NAV_ITEMS: { id: WebsitePageId; label: string; code: string }[] = [
-  { id: 'home', label: 'Overview', code: '00' },
-  { id: 'platforms', label: 'Platforms', code: '01' },
-  { id: 'inspector', label: 'Spec Inspector', code: '02' },
-  { id: 'architecture', label: 'Algor+Ohm Stack', code: '03' },
-  { id: 'field-gallery', label: 'Field Optics', code: '04' },
-  { id: 'roi-configurator', label: 'Fleet ROI Sim', code: '05' },
-  { id: 'research', label: 'Monographs', code: '06' },
+export const WEBSITE_NAV_ITEMS: {
+  id: WebsitePageId;
+  label: string;
+  subtitle: string;
+}[] = [
+  { id: 'home', label: 'Home', subtitle: 'Kinematic Workbench & Executive Summary' },
+  { id: 'platforms', label: 'Platforms', subtitle: 'Autonomous Fleet & Spec Inspector' },
+  { id: 'architecture', label: 'Architecture', subtitle: 'Algor™ Neural OS × Ohm™ Actuators' },
+  { id: 'deployments', label: 'Deployments & ROI', subtitle: 'Field Optics & Payback Simulator' },
+  { id: 'research', label: 'Research', subtitle: 'Peer-Reviewed Lab Monographs' },
 ];
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -34,7 +36,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   return (
     <header className="sticky top-0 z-50 border-b border-slate-800/80 bg-[#07090E]/90 backdrop-blur-xl">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between gap-3">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between gap-4">
         {/* Brand Lockup */}
         <a
           href="#home"
@@ -60,10 +62,10 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
         </a>
 
-        {/* Desktop Multi-Page Navigation Links */}
+        {/* Desktop Professional Website Navigation */}
         <nav
           aria-label="Primary Website Navigation"
-          className="hidden lg:flex items-center gap-1.5 xl:gap-2 text-sm font-medium text-slate-300 shrink-0"
+          className="hidden lg:flex items-center gap-1.5 p-1 rounded-xl bg-slate-900/70 border border-slate-800/90 shrink-0"
         >
           {WEBSITE_NAV_ITEMS.map((item) => {
             const isActive = activePage === item.id;
@@ -73,10 +75,10 @@ export const Navbar: React.FC<NavbarProps> = ({
                 href={`#${item.id}`}
                 onClick={(e) => handleNavClick(e, item.id)}
                 aria-current={isActive ? 'page' : undefined}
-                className={`px-3 py-1.5 rounded-lg text-xs xl:text-sm font-medium transition-all whitespace-nowrap focus-visible:outline-2 focus-visible:outline-cyan-400 ${
+                className={`px-4 py-2 rounded-lg text-xs xl:text-sm font-medium transition-all whitespace-nowrap focus-visible:outline-2 focus-visible:outline-cyan-400 ${
                   isActive
-                    ? 'bg-cyan-500/15 text-cyan-300 border border-cyan-500/40 font-semibold'
-                    : 'text-slate-300 hover:text-cyan-400 hover:bg-slate-900/60 border border-transparent'
+                    ? 'bg-cyan-400 text-slate-950 font-semibold shadow-sm'
+                    : 'text-slate-300 hover:text-white hover:bg-slate-800/70'
                 }`}
               >
                 {item.label}
@@ -119,9 +121,9 @@ export const Navbar: React.FC<NavbarProps> = ({
         <nav
           id="mobile-navigation-drawer"
           aria-label="Mobile Website Navigation"
-          className="lg:hidden border-t border-slate-800 bg-[#0A0E17] px-4 sm:px-6 py-4 space-y-3"
+          className="lg:hidden border-t border-slate-800 bg-[#07090E]/98 backdrop-blur-xl px-4 sm:px-6 py-4 space-y-3"
         >
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-sm">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {WEBSITE_NAV_ITEMS.map((item) => {
               const isActive = activePage === item.id;
               return (
@@ -130,14 +132,27 @@ export const Navbar: React.FC<NavbarProps> = ({
                   href={`#${item.id}`}
                   onClick={(e) => handleNavClick(e, item.id)}
                   aria-current={isActive ? 'page' : undefined}
-                  className={`px-3 py-2.5 rounded-lg border transition-colors flex items-center justify-between ${
+                  className={`p-3 rounded-xl border transition-colors flex flex-col justify-between ${
                     isActive
-                      ? 'bg-cyan-500/15 border-cyan-500/50 text-cyan-300 font-semibold'
-                      : 'bg-slate-900/70 border-slate-800/70 text-slate-200 hover:text-cyan-400 hover:border-cyan-500/40'
+                      ? 'bg-cyan-500/15 border-cyan-400/60 text-white'
+                      : 'bg-slate-900/70 border-slate-800/80 text-slate-200 hover:border-slate-700'
                   }`}
                 >
-                  <span>{item.label}</span>
-                  <span className="text-[10px] font-mono text-slate-500">{item.code}</span>
+                  <div className="flex items-center justify-between">
+                    <span
+                      className={`text-sm font-semibold ${
+                        isActive ? 'text-cyan-300' : 'text-white'
+                      }`}
+                    >
+                      {item.label}
+                    </span>
+                    {isActive && (
+                      <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-cyan-400/20 text-cyan-300">
+                        Active
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-xs text-slate-400 mt-0.5">{item.subtitle}</span>
                 </a>
               );
             })}
@@ -149,7 +164,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 setMobileMenuOpen(false);
                 onOpenDemoModal();
               }}
-              className="w-full px-4 py-3 rounded-lg text-xs font-semibold uppercase tracking-wider bg-cyan-400 text-slate-950 text-center flex items-center justify-center gap-1.5"
+              className="w-full px-4 py-3 rounded-xl text-xs font-semibold uppercase tracking-wider bg-cyan-400 text-slate-950 text-center flex items-center justify-center gap-1.5"
             >
               <span>Request Unit Demo</span>
               <ArrowUpRight className="w-4 h-4" aria-hidden="true" />

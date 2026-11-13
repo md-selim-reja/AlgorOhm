@@ -273,7 +273,7 @@ export const PlatformsSection: React.FC<PlatformsSectionProps> = ({
       <section
         id="inspector"
         aria-labelledby="inspector-heading"
-        className="py-16 sm:py-20 bg-[#0A0E18] border-y border-slate-800/90"
+        className="py-16 sm:py-20 bg-[#090D18]/75 backdrop-blur-sm border-t border-slate-800/80"
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5 sm:gap-6 mb-8 sm:mb-10">
