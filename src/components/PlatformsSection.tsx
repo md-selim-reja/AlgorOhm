@@ -1,15 +1,18 @@
 import React, { useId, useMemo, useState } from 'react';
 import {
   ArrowUpRight,
+  Box,
   CheckCircle2,
   ChevronRight,
   Cpu,
+  Eye,
   Sliders,
   Zap,
 } from 'lucide-react';
 import { PLATFORM_CATEGORIES, ROBOT_PLATFORMS } from '../data/roboticsData';
 import { useAnimatedNumber } from '../hooks/useAnimatedNumber';
 import { PlatformCategory, RobotPlatform } from '../types/robotics';
+import { Robot3DViewer, ViewerModelId } from './Robot3DViewer';
 import { ResilientImage } from './ui/ResilientImage';
 import { SpotlightCard } from './ui/SpotlightCard';
 
@@ -34,6 +37,7 @@ export const PlatformsSection: React.FC<PlatformsSectionProps> = ({
   const [activeCategory, setActiveCategory] = useState<PlatformCategory>('All');
   const [simPayloadPct, setSimPayloadPct] = useState<number>(60); // % of max payload
   const [simDutyCycle, setSimDutyCycle] = useState<number>(75); // % duty cycle
+  const [visualInspectorTab, setVisualInspectorTab] = useState<'3d-joints' | 'optical'>('3d-joints');
 
   const filteredRobots = useMemo(() => {
     if (activeCategory === 'All') return ROBOT_PLATFORMS;
@@ -44,6 +48,9 @@ export const PlatformsSection: React.FC<PlatformsSectionProps> = ({
     () => ROBOT_PLATFORMS.find((r) => r.id === selectedRobotId) || ROBOT_PLATFORMS[0],
     [selectedRobotId]
   );
+
+  const active3DModelId: ViewerModelId =
+    selectedRobot.id === 'ohm-x1' ? 'ohm-x1' : 'kinetix-7-arm';
 
   // Live Runtime & Thermal Estimator for Spec Inspector
   const inspectorSimulation = useMemo(() => {
@@ -280,7 +287,7 @@ export const PlatformsSection: React.FC<PlatformsSectionProps> = ({
             <div>
               <div className="inline-flex items-center gap-2 text-xs font-mono uppercase tracking-widest text-amber-400 mb-2">
                 <Sliders className="w-4 h-4 shrink-0" aria-hidden="true" />
-                <span>02. DEEP HARDWARE & IMPEDANCE INSPECTOR</span>
+                <span>02. DEEP HARDWARE, 3D JOINT & IMPEDANCE INSPECTOR</span>
               </div>
               <h2
                 id="inspector-heading"
@@ -317,24 +324,62 @@ export const PlatformsSection: React.FC<PlatformsSectionProps> = ({
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-start">
-            {/* Left Column: Dual Visuals + Highlights */}
+            {/* Left Column: Interactive 3D Mechanical Joint Viewer + Dual Visuals + Highlights */}
             <div className="lg:col-span-5 space-y-5 sm:space-y-6">
-              <div className="rounded-2xl overflow-hidden border border-slate-800 bg-slate-950 relative">
-                <ResilientImage
-                  src={selectedRobot.image}
-                  alt={selectedRobot.name}
-                  fallbackLabel={selectedRobot.codename}
-                  className="w-full h-56 sm:h-72 object-cover"
-                />
-                <div className="p-3.5 sm:p-4 bg-slate-950/95 border-t border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-xs font-mono">
-                  <span className="text-slate-400 truncate">
-                    PRIMARY OPTICAL FEED // {selectedRobot.codename}
-                  </span>
-                  <span className="text-emerald-400 shrink-0">
-                    {selectedRobot.specs.protectionRating}
-                  </span>
-                </div>
+              {/* Viewport Mode Switcher: 3D R3F Joint Viewer vs Optical Feed */}
+              <div className="flex items-center justify-between gap-2 p-1.5 rounded-xl bg-slate-950 border border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setVisualInspectorTab('3d-joints')}
+                  aria-pressed={visualInspectorTab === '3d-joints'}
+                  className={`flex-1 inline-flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-xs font-mono transition-all cursor-pointer ${
+                    visualInspectorTab === '3d-joints'
+                      ? 'bg-cyan-400 text-slate-950 font-bold'
+                      : 'text-slate-300 hover:text-white'
+                  }`}
+                >
+                  <Box className="w-3.5 h-3.5" aria-hidden="true" />
+                  <span>3D Joint Viewer (R3F)</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setVisualInspectorTab('optical')}
+                  aria-pressed={visualInspectorTab === 'optical'}
+                  className={`flex-1 inline-flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-xs font-mono transition-all cursor-pointer ${
+                    visualInspectorTab === 'optical'
+                      ? 'bg-cyan-400 text-slate-950 font-bold'
+                      : 'text-slate-300 hover:text-white'
+                  }`}
+                >
+                  <Eye className="w-3.5 h-3.5" aria-hidden="true" />
+                  <span>Optical Feed</span>
+                </button>
               </div>
+
+              {visualInspectorTab === '3d-joints' ? (
+                <Robot3DViewer
+                  initialModelId={active3DModelId}
+                  onSelectPlatformId={(platformId) => onSelectRobot(platformId)}
+                  compactHeight
+                />
+              ) : (
+                <div className="rounded-2xl overflow-hidden border border-slate-800 bg-slate-950 relative">
+                  <ResilientImage
+                    src={selectedRobot.image}
+                    alt={selectedRobot.name}
+                    fallbackLabel={selectedRobot.codename}
+                    className="w-full h-56 sm:h-72 object-cover"
+                  />
+                  <div className="p-3.5 sm:p-4 bg-slate-950/95 border-t border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-xs font-mono">
+                    <span className="text-slate-400 truncate">
+                      PRIMARY OPTICAL FEED // {selectedRobot.codename}
+                    </span>
+                    <span className="text-emerald-400 shrink-0">
+                      {selectedRobot.specs.protectionRating}
+                    </span>
+                  </div>
+                </div>
+              )}
 
               {/* Secondary Detail Sub-Assembly Image */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

@@ -4,6 +4,7 @@ import {
   ArrowRight,
   ArrowUpRight,
   BarChart3,
+  Box,
   ChevronRight,
   Cpu,
   Factory,
@@ -19,6 +20,7 @@ import {
 } from '../data/roboticsData';
 import { WebsitePageId } from '../types/robotics';
 import { WEBSITE_NAV_ITEMS } from './Navbar';
+import { Robot3DViewer, ViewerModelId } from './Robot3DViewer';
 import { ResilientImage } from './ui/ResilientImage';
 import { SpotlightCard } from './ui/SpotlightCard';
 
@@ -273,6 +275,9 @@ export const HomeOverviewPortal: React.FC<HomeOverviewPortalProps> = ({
   onSelectRobotAndInspect,
   onNavigate,
 }) => {
+  const initial3DModel: ViewerModelId =
+    selectedRobotId === 'ohm-x1' ? 'ohm-x1' : 'kinetix-7-arm';
+
   return (
     <div className="divide-y divide-slate-800/80">
       {/* 01. Flagship Robotic Fleet Teaser on Home */}
@@ -411,6 +416,38 @@ export const HomeOverviewPortal: React.FC<HomeOverviewPortalProps> = ({
               </SpotlightCard>
             );
           })}
+        </div>
+
+        {/* Interactive 3D Mechanical Joint & Actuator Viewer Showcase */}
+        <div className="mt-12 sm:mt-16 pt-12 border-t border-slate-800/80">
+          <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 mb-6">
+            <div>
+              <div className="inline-flex items-center gap-2 text-xs font-mono uppercase tracking-widest text-amber-400 mb-2">
+                <Box className="w-4 h-4 shrink-0" aria-hidden="true" />
+                <span>INTERACTIVE REACT THREE FIBER // 3D KINEMATIC & STATOR VIEWER</span>
+              </div>
+              <h3 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white tracking-tight font-display">
+                3D Mechanical Joint & Ohm™ Actuator Inspector
+              </h3>
+              <p className="text-xs sm:text-sm text-slate-400 mt-1.5 max-w-2xl">
+                Rotate, zoom, and click any mechanical joint on the{' '}
+                <strong className="text-slate-200">Kinetix-7 Axis Arm</strong> or{' '}
+                <strong className="text-slate-200">Ohm-X1 Humanoid</strong> to inspect its
+                Silicon-Carbide Halbach stator windings, BiSS-C dual optical encoder ring, and
+                live joint articulation in 3D.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => onNavigate('platforms', 'inspector')}
+              className="self-start lg:self-auto inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-mono border border-cyan-500/40 bg-cyan-950/30 text-cyan-300 hover:bg-cyan-400 hover:text-slate-950 font-semibold transition-all cursor-pointer shrink-0"
+            >
+              <span>Open Full Datasheet & Thermal Sim</span>
+              <ArrowUpRight className="w-4 h-4" aria-hidden="true" />
+            </button>
+          </div>
+
+          <Robot3DViewer initialModelId={initial3DModel} />
         </div>
       </section>
 
