@@ -1,13 +1,14 @@
 import React, { useEffect, useId, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { Canvas, ThreeEvent, useFrame, useThree } from '@react-three/fiber';
-import { OrbitControls } from '@react-three/drei';
+import { Html, OrbitControls } from '@react-three/drei';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import {
   Box,
   ChevronDown,
   ChevronUp,
+  Compass,
   Layers,
   Pause,
   Play,
@@ -29,6 +30,7 @@ export interface JointTelemetrySpec {
   defaultAngleDeg: number;
   minDeg: number;
   maxDeg: number;
+  rotationAxis: 'X' | 'Y' | 'Z';
 }
 
 const KINETIX_JOINTS: JointTelemetrySpec[] = [
@@ -44,6 +46,7 @@ const KINETIX_JOINTS: JointTelemetrySpec[] = [
     defaultAngleDeg: 25,
     minDeg: -160,
     maxDeg: 160,
+    rotationAxis: 'Y',
   },
   {
     id: 'j2',
@@ -57,6 +60,7 @@ const KINETIX_JOINTS: JointTelemetrySpec[] = [
     defaultAngleDeg: -22,
     minDeg: -95,
     maxDeg: 95,
+    rotationAxis: 'Z',
   },
   {
     id: 'j3',
@@ -70,6 +74,7 @@ const KINETIX_JOINTS: JointTelemetrySpec[] = [
     defaultAngleDeg: 48,
     minDeg: -120,
     maxDeg: 120,
+    rotationAxis: 'Z',
   },
   {
     id: 'j4',
@@ -83,6 +88,7 @@ const KINETIX_JOINTS: JointTelemetrySpec[] = [
     defaultAngleDeg: -15,
     minDeg: -160,
     maxDeg: 160,
+    rotationAxis: 'Y',
   },
   {
     id: 'j5',
@@ -96,6 +102,7 @@ const KINETIX_JOINTS: JointTelemetrySpec[] = [
     defaultAngleDeg: 32,
     minDeg: -110,
     maxDeg: 110,
+    rotationAxis: 'Z',
   },
   {
     id: 'j6',
@@ -109,6 +116,7 @@ const KINETIX_JOINTS: JointTelemetrySpec[] = [
     defaultAngleDeg: 20,
     minDeg: -90,
     maxDeg: 90,
+    rotationAxis: 'Y',
   },
 ];
 
@@ -125,6 +133,7 @@ const OHM_X1_JOINTS: JointTelemetrySpec[] = [
     defaultAngleDeg: 12,
     minDeg: -65,
     maxDeg: 65,
+    rotationAxis: 'Y',
   },
   {
     id: 'j2',
@@ -138,6 +147,7 @@ const OHM_X1_JOINTS: JointTelemetrySpec[] = [
     defaultAngleDeg: -35,
     minDeg: -120,
     maxDeg: 120,
+    rotationAxis: 'X',
   },
   {
     id: 'j3',
@@ -151,6 +161,7 @@ const OHM_X1_JOINTS: JointTelemetrySpec[] = [
     defaultAngleDeg: 52,
     minDeg: -110,
     maxDeg: 110,
+    rotationAxis: 'X',
   },
   {
     id: 'j4',
@@ -164,6 +175,7 @@ const OHM_X1_JOINTS: JointTelemetrySpec[] = [
     defaultAngleDeg: 24,
     minDeg: -120,
     maxDeg: 120,
+    rotationAxis: 'X',
   },
   {
     id: 'j5',
@@ -177,6 +189,7 @@ const OHM_X1_JOINTS: JointTelemetrySpec[] = [
     defaultAngleDeg: -14,
     minDeg: -55,
     maxDeg: 55,
+    rotationAxis: 'X',
   },
   {
     id: 'j6',
@@ -190,6 +203,7 @@ const OHM_X1_JOINTS: JointTelemetrySpec[] = [
     defaultAngleDeg: 22,
     minDeg: -65,
     maxDeg: 65,
+    rotationAxis: 'X',
   },
 ];
 
@@ -236,13 +250,338 @@ const StudioEnvironmentSetup: React.FC = () => {
 };
 
 /**
+ * Reusable 3D Coordinate Frame Triad (X: Red #ef4444, Y: Emerald #10b981, Z: Cyan #38bdf8)
+ * Smoothly scales in when `visible` is true (on robot hover, joint hover, or pinned mode).
+ */
+interface CoordinateAxesTriadProps {
+  visible: boolean;
+  axisLength?: number;
+  thickness?: number;
+  showLabels?: boolean;
+  frameLabel?: string;
+}
+
+const CoordinateAxesTriad: React.FC<CoordinateAxesTriadProps> = ({
+  visible,
+  axisLength = 0.55,
+  thickness = 0.014,
+  showLabels = false,
+  frameLabel,
+}) => {
+  const groupRef = useRef<THREE.Group>(null);
+  const scaleRef = useRef<number>(0);
+
+  useFrame((_, delta) => {
+    const dt = Math.min(delta, 0.1);
+    const targetScale = visible ? 1 : 0;
+    scaleRef.current = THREE.MathUtils.damp(scaleRef.current, targetScale, 10, dt);
+    if (groupRef.current) {
+      const s = Math.max(0.0001, scaleRef.current);
+      groupRef.current.scale.setScalar(s);
+      groupRef.current.visible = scaleRef.current > 0.01;
+    }
+  });
+
+  const headLength = axisLength * 0.18;
+  const headRadius = thickness * 2.4;
+  const shaftLen = axisLength - headLength;
+
+  return (
+    <group ref={groupRef}>
+      {/* Origin Reference Sphere */}
+      <mesh>
+        <sphereGeometry args={[thickness * 1.9, 16, 16]} />
+        <meshStandardMaterial
+          color="#f8fafc"
+          emissive="#38bdf8"
+          emissiveIntensity={0.9}
+        />
+      </mesh>
+
+      {/* +X Axis (Red) */}
+      <group rotation={[0, 0, -Math.PI / 2]}>
+        <mesh position={[0, shaftLen * 0.5, 0]}>
+          <cylinderGeometry args={[thickness, thickness, shaftLen, 12]} />
+          <meshStandardMaterial
+            color="#ef4444"
+            emissive="#ef4444"
+            emissiveIntensity={1.2}
+          />
+        </mesh>
+        <mesh position={[0, shaftLen + headLength * 0.5, 0]}>
+          <coneGeometry args={[headRadius, headLength, 14]} />
+          <meshStandardMaterial
+            color="#ef4444"
+            emissive="#ef4444"
+            emissiveIntensity={1.4}
+          />
+        </mesh>
+      </group>
+
+      {/* +Y Axis (Emerald Green) */}
+      <group>
+        <mesh position={[0, shaftLen * 0.5, 0]}>
+          <cylinderGeometry args={[thickness, thickness, shaftLen, 12]} />
+          <meshStandardMaterial
+            color="#10b981"
+            emissive="#10b981"
+            emissiveIntensity={1.2}
+          />
+        </mesh>
+        <mesh position={[0, shaftLen + headLength * 0.5, 0]}>
+          <coneGeometry args={[headRadius, headLength, 14]} />
+          <meshStandardMaterial
+            color="#10b981"
+            emissive="#10b981"
+            emissiveIntensity={1.4}
+          />
+        </mesh>
+      </group>
+
+      {/* +Z Axis (Cyan/Blue) */}
+      <group rotation={[Math.PI / 2, 0, 0]}>
+        <mesh position={[0, shaftLen * 0.5, 0]}>
+          <cylinderGeometry args={[thickness, thickness, shaftLen, 12]} />
+          <meshStandardMaterial
+            color="#38bdf8"
+            emissive="#38bdf8"
+            emissiveIntensity={1.2}
+          />
+        </mesh>
+        <mesh position={[0, shaftLen + headLength * 0.5, 0]}>
+          <coneGeometry args={[headRadius, headLength, 14]} />
+          <meshStandardMaterial
+            color="#38bdf8"
+            emissive="#38bdf8"
+            emissiveIntensity={1.4}
+          />
+        </mesh>
+      </group>
+
+      {/* Floating X / Y / Z Labels when visible */}
+      {showLabels && visible && (
+        <>
+          <Html
+            position={[axisLength + 0.08, 0, 0]}
+            center
+            distanceFactor={6}
+            style={{ pointerEvents: 'none' }}
+          >
+            <span className="px-1.5 py-0.5 rounded bg-[#090D18] border border-red-500/60 text-[10px] font-mono font-bold text-red-400 whitespace-nowrap shadow">
+              +X
+            </span>
+          </Html>
+          <Html
+            position={[0, axisLength + 0.08, 0]}
+            center
+            distanceFactor={6}
+            style={{ pointerEvents: 'none' }}
+          >
+            <span className="px-1.5 py-0.5 rounded bg-[#090D18] border border-emerald-500/60 text-[10px] font-mono font-bold text-emerald-400 whitespace-nowrap shadow">
+              +Y
+            </span>
+          </Html>
+          <Html
+            position={[0, 0, axisLength + 0.08]}
+            center
+            distanceFactor={6}
+            style={{ pointerEvents: 'none' }}
+          >
+            <span className="px-1.5 py-0.5 rounded bg-[#090D18] border border-sky-500/60 text-[10px] font-mono font-bold text-sky-300 whitespace-nowrap shadow">
+              +Z {frameLabel ? `(${frameLabel})` : ''}
+            </span>
+          </Html>
+        </>
+      )}
+    </group>
+  );
+};
+
+/**
+ * Dynamic 3D Joint Limit Protractor Visualizer:
+ * Renders the allowable angular envelope [minDeg, maxDeg] around a joint's stator axis,
+ * hard-stop boundary ticks at minDeg and maxDeg, a 0° neutral tick, and a live pointer ray
+ * showing the instantaneous joint angle inside the travel envelope.
+ */
+interface JointLimitVisualizerProps {
+  visible: boolean;
+  isHighlighted: boolean;
+  radius: number;
+  minDeg: number;
+  maxDeg: number;
+  currentAngleDeg: number;
+  shortLabel: string;
+  rotationAxis: 'X' | 'Y' | 'Z';
+  showBadge: boolean;
+}
+
+const JointLimitVisualizer: React.FC<JointLimitVisualizerProps> = ({
+  visible,
+  isHighlighted,
+  radius,
+  minDeg,
+  maxDeg,
+  currentAngleDeg,
+  shortLabel,
+  rotationAxis,
+  showBadge,
+}) => {
+  const groupRef = useRef<THREE.Group>(null);
+  const scaleRef = useRef<number>(0);
+
+  useFrame((_, delta) => {
+    const dt = Math.min(delta, 0.1);
+    const target = visible ? 1 : 0;
+    scaleRef.current = THREE.MathUtils.damp(scaleRef.current, target, 10, dt);
+    if (groupRef.current) {
+      const s = Math.max(0.0001, scaleRef.current);
+      groupRef.current.scale.setScalar(s);
+      groupRef.current.visible = scaleRef.current > 0.01;
+    }
+  });
+
+  const minRad = THREE.MathUtils.degToRad(minDeg);
+  const maxRad = THREE.MathUtils.degToRad(maxDeg);
+  const spanRad = Math.max(0.05, maxRad - minRad);
+  const currentRad = THREE.MathUtils.degToRad(
+    THREE.MathUtils.clamp(currentAngleDeg, minDeg, maxDeg)
+  );
+
+  const innerR = radius * 1.18;
+  const outerR = radius * 1.44;
+  const midR = (innerR + outerR) * 0.5;
+
+  // Compute positions for min hard-stop, max hard-stop, 0° reference, and current live angle
+  // In the XZ plane (rotated -Math.PI/2 around X), polar angle theta maps to:
+  // x = r * cos(theta), z = -r * sin(theta)
+  const minPos: [number, number, number] = [
+    Math.cos(minRad) * midR,
+    0,
+    -Math.sin(minRad) * midR,
+  ];
+  const maxPos: [number, number, number] = [
+    Math.cos(maxRad) * midR,
+    0,
+    -Math.sin(maxRad) * midR,
+  ];
+  const curPos: [number, number, number] = [
+    Math.cos(currentRad) * (outerR + 0.03),
+    0,
+    -Math.sin(currentRad) * (outerR + 0.03),
+  ];
+
+  return (
+    <group ref={groupRef}>
+      {/* Allowable Angular Sector [minDeg, maxDeg] */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]}>
+        <ringGeometry args={[innerR, outerR, 40, 1, minRad, spanRad]} />
+        <meshBasicMaterial
+          color={isHighlighted ? '#22d3ee' : '#38bdf8'}
+          transparent
+          opacity={isHighlighted ? 0.34 : 0.18}
+          side={THREE.DoubleSide}
+        />
+      </mesh>
+
+      {/* Outer Rim Arc Wireframe */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]}>
+        <ringGeometry args={[outerR - 0.012, outerR, 40, 1, minRad, spanRad]} />
+        <meshBasicMaterial
+          color={isHighlighted ? '#22d3ee' : '#0284c7'}
+          side={THREE.DoubleSide}
+        />
+      </mesh>
+
+      {/* Min Limit Hard-Stop Marker (Red/Amber) */}
+      <mesh position={minPos} rotation={[0, minRad, 0]}>
+        <boxGeometry args={[outerR - innerR + 0.06, 0.025, 0.022]} />
+        <meshStandardMaterial
+          color="#f59e0b"
+          emissive="#f59e0b"
+          emissiveIntensity={1.6}
+        />
+      </mesh>
+
+      {/* Max Limit Hard-Stop Marker (Red/Amber) */}
+      <mesh position={maxPos} rotation={[0, maxRad, 0]}>
+        <boxGeometry args={[outerR - innerR + 0.06, 0.025, 0.022]} />
+        <meshStandardMaterial
+          color="#f59e0b"
+          emissive="#f59e0b"
+          emissiveIntensity={1.6}
+        />
+      </mesh>
+
+      {/* 0° Neutral Calibration Tick */}
+      <mesh position={[midR, 0, 0]}>
+        <boxGeometry args={[outerR - innerR + 0.03, 0.015, 0.014]} />
+        <meshBasicMaterial color="#94a3b8" />
+      </mesh>
+
+      {/* Live Instantaneous Joint Angle Pointer & Tip Beacon */}
+      <group rotation={[0, currentRad, 0]}>
+        <mesh position={[midR * 0.85, 0.012, 0]}>
+          <boxGeometry args={[outerR * 0.55, 0.02, 0.022]} />
+          <meshStandardMaterial
+            color="#10b981"
+            emissive="#10b981"
+            emissiveIntensity={1.9}
+          />
+        </mesh>
+      </group>
+      <mesh position={curPos}>
+        <sphereGeometry args={[0.03, 14, 14]} />
+        <meshStandardMaterial
+          color="#10b981"
+          emissive="#10b981"
+          emissiveIntensity={2.0}
+        />
+      </mesh>
+
+      {/* Floating 3D Technical Readout Pill for Hovered/Inspected Joint */}
+      {showBadge && visible && (
+        <Html
+          position={[0, 0.24, outerR + 0.08]}
+          center
+          distanceFactor={5.5}
+          style={{ pointerEvents: 'none' }}
+        >
+          <div className="px-2.5 py-1.5 rounded-lg bg-[#090D18] border border-cyan-400/70 shadow-xl text-[10px] font-mono whitespace-nowrap space-y-0.5">
+            <div className="flex items-center justify-between gap-2 text-cyan-300 font-bold">
+              <span>{shortLabel}</span>
+              <span className="text-emerald-400">AXIS: {rotationAxis}</span>
+            </div>
+            <div className="text-slate-300">
+              LIMITS:{' '}
+              <span className="text-amber-300 font-semibold">
+                [{minDeg}°, +{maxDeg}°]
+              </span>{' '}
+              • θ:{' '}
+              <span className="text-white font-bold">
+                {Math.round(currentAngleDeg)}°
+              </span>
+            </div>
+          </div>
+        </Html>
+      )}
+    </group>
+  );
+};
+
+/**
  * Reusable Ohm™ QDD / Harmonic Actuator Joint Assembly (Multi-part composite group:
- * Outer Anodized Stator Housing + Exposed Copper Halbach Winding Ring + Glowing Telemetry Ring + Fastener Bolts)
+ * Outer Anodized Stator Housing + Exposed Copper Halbach Winding Ring + Glowing Telemetry Ring
+ * + Dynamic Coordinate Axes Triad + Joint Limit Protractor Visualizer)
  */
 interface ActuatorRingProps {
   jointId: string;
   selectedJointId: string;
+  hoveredJointId: string | null;
   onSelectJoint: (id: string) => void;
+  onHoverJoint: (id: string | null) => void;
+  jointSpec: JointTelemetrySpec;
+  currentAngleDeg: number;
+  showTechnicalOverlays: boolean;
   radius?: number;
   length?: number;
   explodedOffset?: number;
@@ -253,7 +592,12 @@ interface ActuatorRingProps {
 const ActuatorAssembly: React.FC<ActuatorRingProps> = ({
   jointId,
   selectedJointId,
+  hoveredJointId,
   onSelectJoint,
+  onHoverJoint,
+  jointSpec,
+  currentAngleDeg,
+  showTechnicalOverlays,
   radius = 0.28,
   length = 0.26,
   explodedOffset = 0,
@@ -261,27 +605,34 @@ const ActuatorAssembly: React.FC<ActuatorRingProps> = ({
   accentColor = '#22d3ee',
 }) => {
   const isSelected = selectedJointId === jointId;
-  const [hovered, setHovered] = useState(false);
+  const isHovered = hoveredJointId === jointId;
 
   const handlePointerDown = (e: ThreeEvent<PointerEvent>) => {
     e.stopPropagation();
     onSelectJoint(jointId);
   };
 
+  // Show local joint coordinate triad & limit visualizer when the robot is hovered/pinned
+  const showJointVisualizer =
+    showTechnicalOverlays && (isHovered || isSelected || hoveredJointId === null);
+
   return (
     <group
       onPointerDown={handlePointerDown}
       onPointerOver={(e) => {
         e.stopPropagation();
-        setHovered(true);
+        onHoverJoint(jointId);
       }}
-      onPointerOut={() => setHovered(false)}
+      onPointerOut={(e) => {
+        e.stopPropagation();
+        onHoverJoint(null);
+      }}
     >
       {/* 1. Primary Stator Housing Cylinder */}
       <mesh castShadow receiveShadow>
         <cylinderGeometry args={[radius, radius, length, 28]} />
         <meshPhysicalMaterial
-          color={isSelected ? '#164e63' : hovered ? '#1e293b' : '#0f172a'}
+          color={isSelected ? '#164e63' : isHovered ? '#1e293b' : '#0f172a'}
           metalness={0.85}
           roughness={0.24}
           clearcoat={0.6}
@@ -322,13 +673,34 @@ const ActuatorAssembly: React.FC<ActuatorRingProps> = ({
       >
         <torusGeometry args={[radius * 1.03, 0.022, 12, 36]} />
         <meshStandardMaterial
-          color={isSelected ? '#22d3ee' : hovered ? '#38bdf8' : accentColor}
-          emissive={isSelected ? '#22d3ee' : hovered ? '#38bdf8' : accentColor}
-          emissiveIntensity={isSelected ? 1.8 : hovered ? 1.2 : 0.65}
+          color={isSelected ? '#22d3ee' : isHovered ? '#38bdf8' : accentColor}
+          emissive={isSelected ? '#22d3ee' : isHovered ? '#38bdf8' : accentColor}
+          emissiveIntensity={isSelected ? 1.8 : isHovered ? 1.3 : 0.65}
           roughness={0.2}
           metalness={0.5}
         />
       </mesh>
+
+      {/* 5. Dynamic Local Coordinate Axes (X, Y, Z) on Hovered or Active Joint */}
+      <CoordinateAxesTriad
+        visible={showTechnicalOverlays && (isHovered || isSelected)}
+        axisLength={radius * 1.65}
+        thickness={0.011}
+        showLabels={isHovered}
+      />
+
+      {/* 6. Dynamic Joint Limit Protractor Visualizer [minDeg, maxDeg] */}
+      <JointLimitVisualizer
+        visible={showJointVisualizer}
+        isHighlighted={isHovered || isSelected}
+        radius={radius}
+        minDeg={jointSpec.minDeg}
+        maxDeg={jointSpec.maxDeg}
+        currentAngleDeg={currentAngleDeg}
+        shortLabel={jointSpec.shortLabel}
+        rotationAxis={jointSpec.rotationAxis}
+        showBadge={isHovered || (isSelected && hoveredJointId === null)}
+      />
     </group>
   );
 };
@@ -336,7 +708,12 @@ const ActuatorAssembly: React.FC<ActuatorRingProps> = ({
 interface RobotMeshSceneProps {
   modelId: ViewerModelId;
   selectedJointId: string;
+  hoveredJointId: string | null;
   onSelectJoint: (id: string) => void;
+  onHoverJoint: (id: string | null) => void;
+  onModelHoverChange: (hovered: boolean) => void;
+  showTechnicalOverlays: boolean;
+  jointSpecsMap: Record<string, JointTelemetrySpec>;
   jointAnglesDeg: Record<string, number>;
   autoAnimate: boolean;
   explodedPct: number;
@@ -348,7 +725,12 @@ interface RobotMeshSceneProps {
  */
 const Kinetix7ArmModel: React.FC<RobotMeshSceneProps> = ({
   selectedJointId,
+  hoveredJointId,
   onSelectJoint,
+  onHoverJoint,
+  onModelHoverChange,
+  showTechnicalOverlays,
+  jointSpecsMap,
   jointAnglesDeg,
   autoAnimate,
   explodedPct,
@@ -440,7 +822,22 @@ const Kinetix7ArmModel: React.FC<RobotMeshSceneProps> = ({
   const exp = explodedPct / 100;
 
   return (
-    <group position={[0, -1.35, 0]}>
+    <group
+      position={[0, -1.35, 0]}
+      onPointerOver={() => onModelHoverChange(true)}
+      onPointerOut={() => onModelHoverChange(false)}
+    >
+      {/* World Base Coordinate Axes (X, Y, Z) at Pedestal Origin */}
+      <group position={[-0.95, 0.05, 0.75]}>
+        <CoordinateAxesTriad
+          visible={showTechnicalOverlays}
+          axisLength={0.62}
+          thickness={0.015}
+          showLabels
+          frameLabel="BASE"
+        />
+      </group>
+
       {/* Base Mounting Flange & Pedestal (Grounded at y = 0) */}
       <mesh position={[0, 0.08, 0]} castShadow receiveShadow>
         <cylinderGeometry args={[0.62, 0.72, 0.16, 36]} />
@@ -461,7 +858,12 @@ const Kinetix7ArmModel: React.FC<RobotMeshSceneProps> = ({
         <ActuatorAssembly
           jointId="j1"
           selectedJointId={selectedJointId}
+          hoveredJointId={hoveredJointId}
           onSelectJoint={onSelectJoint}
+          onHoverJoint={onHoverJoint}
+          jointSpec={jointSpecsMap.j1}
+          currentAngleDeg={jointAnglesDeg.j1}
+          showTechnicalOverlays={showTechnicalOverlays}
           radius={0.42}
           length={0.36}
           explodedOffset={exp}
@@ -487,7 +889,12 @@ const Kinetix7ArmModel: React.FC<RobotMeshSceneProps> = ({
             <ActuatorAssembly
               jointId="j2"
               selectedJointId={selectedJointId}
+              hoveredJointId={hoveredJointId}
               onSelectJoint={onSelectJoint}
+              onHoverJoint={onHoverJoint}
+              jointSpec={jointSpecsMap.j2}
+              currentAngleDeg={jointAnglesDeg.j2}
+              showTechnicalOverlays={showTechnicalOverlays}
               radius={0.34}
               length={0.38}
               explodedOffset={exp}
@@ -533,7 +940,12 @@ const Kinetix7ArmModel: React.FC<RobotMeshSceneProps> = ({
               <ActuatorAssembly
                 jointId="j3"
                 selectedJointId={selectedJointId}
+                hoveredJointId={hoveredJointId}
                 onSelectJoint={onSelectJoint}
+                onHoverJoint={onHoverJoint}
+                jointSpec={jointSpecsMap.j3}
+                currentAngleDeg={jointAnglesDeg.j3}
+                showTechnicalOverlays={showTechnicalOverlays}
                 radius={0.27}
                 length={0.32}
                 explodedOffset={exp}
@@ -547,7 +959,12 @@ const Kinetix7ArmModel: React.FC<RobotMeshSceneProps> = ({
               <ActuatorAssembly
                 jointId="j4"
                 selectedJointId={selectedJointId}
+                hoveredJointId={hoveredJointId}
                 onSelectJoint={onSelectJoint}
+                onHoverJoint={onHoverJoint}
+                jointSpec={jointSpecsMap.j4}
+                currentAngleDeg={jointAnglesDeg.j4}
+                showTechnicalOverlays={showTechnicalOverlays}
                 radius={0.21}
                 length={0.24}
                 explodedOffset={exp}
@@ -572,7 +989,12 @@ const Kinetix7ArmModel: React.FC<RobotMeshSceneProps> = ({
                   <ActuatorAssembly
                     jointId="j5"
                     selectedJointId={selectedJointId}
+                    hoveredJointId={hoveredJointId}
                     onSelectJoint={onSelectJoint}
+                    onHoverJoint={onHoverJoint}
+                    jointSpec={jointSpecsMap.j5}
+                    currentAngleDeg={jointAnglesDeg.j5}
+                    showTechnicalOverlays={showTechnicalOverlays}
                     radius={0.18}
                     length={0.24}
                     explodedOffset={exp}
@@ -586,7 +1008,12 @@ const Kinetix7ArmModel: React.FC<RobotMeshSceneProps> = ({
                   <ActuatorAssembly
                     jointId="j6"
                     selectedJointId={selectedJointId}
+                    hoveredJointId={hoveredJointId}
                     onSelectJoint={onSelectJoint}
+                    onHoverJoint={onHoverJoint}
+                    jointSpec={jointSpecsMap.j6}
+                    currentAngleDeg={jointAnglesDeg.j6}
+                    showTechnicalOverlays={showTechnicalOverlays}
                     radius={0.15}
                     length={0.16}
                     explodedOffset={exp}
@@ -630,7 +1057,7 @@ const Kinetix7ArmModel: React.FC<RobotMeshSceneProps> = ({
                       wireframe={wireframe}
                     />
                   </mesh>
-                  {/* Optical Laser TCP Emitter */}
+                  {/* Optical Laser TCP Emitter + Tool Center Point (TCP) Coordinate Frame */}
                   <mesh position={[0, 0.18, 0]}>
                     <sphereGeometry args={[0.028, 16, 16]} />
                     <meshStandardMaterial
@@ -639,6 +1066,15 @@ const Kinetix7ArmModel: React.FC<RobotMeshSceneProps> = ({
                       emissiveIntensity={2}
                     />
                   </mesh>
+                  <group position={[0, 0.34, 0]}>
+                    <CoordinateAxesTriad
+                      visible={showTechnicalOverlays}
+                      axisLength={0.32}
+                      thickness={0.009}
+                      showLabels
+                      frameLabel="TCP"
+                    />
+                  </group>
                 </group>
               </group>
             </group>
@@ -654,7 +1090,12 @@ const Kinetix7ArmModel: React.FC<RobotMeshSceneProps> = ({
  */
 const OhmX1HumanoidModel: React.FC<RobotMeshSceneProps> = ({
   selectedJointId,
+  hoveredJointId,
   onSelectJoint,
+  onHoverJoint,
+  onModelHoverChange,
+  showTechnicalOverlays,
+  jointSpecsMap,
   jointAnglesDeg,
   autoAnimate,
   explodedPct,
@@ -762,7 +1203,22 @@ const OhmX1HumanoidModel: React.FC<RobotMeshSceneProps> = ({
   const exp = explodedPct / 100;
 
   return (
-    <group position={[0, -1.35, 0]}>
+    <group
+      position={[0, -1.35, 0]}
+      onPointerOver={() => onModelHoverChange(true)}
+      onPointerOut={() => onModelHoverChange(false)}
+    >
+      {/* World Base Coordinate Axes (X, Y, Z) at Calibration Platform Origin */}
+      <group position={[-1.05, 0.05, 0.78]}>
+        <CoordinateAxesTriad
+          visible={showTechnicalOverlays}
+          axisLength={0.62}
+          thickness={0.015}
+          showLabels
+          frameLabel="WORLD"
+        />
+      </group>
+
       {/* Calibration Floor Platform Disc */}
       <mesh position={[0, 0.04, 0]} receiveShadow>
         <cylinderGeometry args={[0.85, 0.92, 0.08, 40]} />
@@ -776,6 +1232,17 @@ const OhmX1HumanoidModel: React.FC<RobotMeshSceneProps> = ({
 
       {/* Pelvis Block */}
       <group position={[0, 1.32, 0]}>
+        {/* Center of Mass (CoM) Coordinate Triad */}
+        <group position={[0, 0, 0.25]}>
+          <CoordinateAxesTriad
+            visible={showTechnicalOverlays}
+            axisLength={0.36}
+            thickness={0.01}
+            showLabels
+            frameLabel="CoM"
+          />
+        </group>
+
         <mesh castShadow receiveShadow>
           <boxGeometry args={[0.56, 0.24, 0.34]} />
           <meshPhysicalMaterial
@@ -791,7 +1258,12 @@ const OhmX1HumanoidModel: React.FC<RobotMeshSceneProps> = ({
           <ActuatorAssembly
             jointId="j1"
             selectedJointId={selectedJointId}
+            hoveredJointId={hoveredJointId}
             onSelectJoint={onSelectJoint}
+            onHoverJoint={onHoverJoint}
+            jointSpec={jointSpecsMap.j1}
+            currentAngleDeg={jointAnglesDeg.j1}
+            showTechnicalOverlays={showTechnicalOverlays}
             radius={0.24}
             length={0.22}
             explodedOffset={exp}
@@ -871,7 +1343,12 @@ const OhmX1HumanoidModel: React.FC<RobotMeshSceneProps> = ({
                 <ActuatorAssembly
                   jointId="j2"
                   selectedJointId={selectedJointId}
+                  hoveredJointId={hoveredJointId}
                   onSelectJoint={onSelectJoint}
+                  onHoverJoint={onHoverJoint}
+                  jointSpec={jointSpecsMap.j2}
+                  currentAngleDeg={jointAnglesDeg.j2}
+                  showTechnicalOverlays={showTechnicalOverlays}
                   radius={0.18}
                   length={0.22}
                   explodedOffset={exp}
@@ -897,7 +1374,12 @@ const OhmX1HumanoidModel: React.FC<RobotMeshSceneProps> = ({
                   <ActuatorAssembly
                     jointId="j3"
                     selectedJointId={selectedJointId}
+                    hoveredJointId={hoveredJointId}
                     onSelectJoint={onSelectJoint}
+                    onHoverJoint={onHoverJoint}
+                    jointSpec={jointSpecsMap.j3}
+                    currentAngleDeg={jointAnglesDeg.j3}
+                    showTechnicalOverlays={showTechnicalOverlays}
                     radius={0.15}
                     length={0.18}
                     explodedOffset={exp}
@@ -936,7 +1418,12 @@ const OhmX1HumanoidModel: React.FC<RobotMeshSceneProps> = ({
                 <ActuatorAssembly
                   jointId="j4"
                   selectedJointId={selectedJointId}
+                  hoveredJointId={hoveredJointId}
                   onSelectJoint={onSelectJoint}
+                  onHoverJoint={onHoverJoint}
+                  jointSpec={jointSpecsMap.j4}
+                  currentAngleDeg={jointAnglesDeg.j4}
+                  showTechnicalOverlays={showTechnicalOverlays}
                   radius={0.18}
                   length={0.22}
                   explodedOffset={exp}
@@ -972,7 +1459,12 @@ const OhmX1HumanoidModel: React.FC<RobotMeshSceneProps> = ({
             <ActuatorAssembly
               jointId="j5"
               selectedJointId={selectedJointId}
+              hoveredJointId={hoveredJointId}
               onSelectJoint={onSelectJoint}
+              onHoverJoint={onHoverJoint}
+              jointSpec={jointSpecsMap.j5}
+              currentAngleDeg={jointAnglesDeg.j5}
+              showTechnicalOverlays={showTechnicalOverlays}
               radius={0.2}
               length={0.22}
               explodedOffset={exp}
@@ -996,7 +1488,12 @@ const OhmX1HumanoidModel: React.FC<RobotMeshSceneProps> = ({
               <ActuatorAssembly
                 jointId="j6"
                 selectedJointId={selectedJointId}
+                hoveredJointId={hoveredJointId}
                 onSelectJoint={onSelectJoint}
+                onHoverJoint={onHoverJoint}
+                jointSpec={jointSpecsMap.j6}
+                currentAngleDeg={jointAnglesDeg.j6}
+                showTechnicalOverlays={showTechnicalOverlays}
                 radius={0.18}
                 length={0.2}
                 explodedOffset={exp}
@@ -1032,7 +1529,12 @@ const OhmX1HumanoidModel: React.FC<RobotMeshSceneProps> = ({
             <ActuatorAssembly
               jointId="j5"
               selectedJointId={selectedJointId}
+              hoveredJointId={hoveredJointId}
               onSelectJoint={onSelectJoint}
+              onHoverJoint={onHoverJoint}
+              jointSpec={jointSpecsMap.j5}
+              currentAngleDeg={jointAnglesDeg.j5}
+              showTechnicalOverlays={showTechnicalOverlays}
               radius={0.2}
               length={0.22}
               explodedOffset={exp}
@@ -1054,7 +1556,12 @@ const OhmX1HumanoidModel: React.FC<RobotMeshSceneProps> = ({
               <ActuatorAssembly
                 jointId="j6"
                 selectedJointId={selectedJointId}
+                hoveredJointId={hoveredJointId}
                 onSelectJoint={onSelectJoint}
+                onHoverJoint={onHoverJoint}
+                jointSpec={jointSpecsMap.j6}
+                currentAngleDeg={jointAnglesDeg.j6}
+                showTechnicalOverlays={showTechnicalOverlays}
                 radius={0.18}
                 length={0.2}
                 explodedOffset={exp}
@@ -1103,6 +1610,9 @@ export const Robot3DViewer: React.FC<Robot3DViewerProps> = ({
 
   const [modelId, setModelId] = useState<ViewerModelId>(initialModelId);
   const [selectedJointId, setSelectedJointId] = useState<string>('j1');
+  const [hoveredJointId, setHoveredJointId] = useState<string | null>(null);
+  const [isModelHovered, setIsModelHovered] = useState<boolean>(false);
+  const [pinAxesAndLimits, setPinAxesAndLimits] = useState<boolean>(false);
   const [autoAnimate, setAutoAnimate] = useState<boolean>(true);
   const [explodedPct, setExplodedPct] = useState<number>(0);
   const [wireframe, setWireframe] = useState<boolean>(false);
@@ -1122,6 +1632,14 @@ export const Robot3DViewer: React.FC<Robot3DViewerProps> = ({
     [modelId]
   );
 
+  const jointSpecsMap = useMemo(() => {
+    const map: Record<string, JointTelemetrySpec> = {};
+    activeJoints.forEach((j) => {
+      map[j.id] = j;
+    });
+    return map;
+  }, [activeJoints]);
+
   const [jointAnglesDeg, setJointAnglesDeg] = useState<Record<string, number>>(() => {
     const map: Record<string, number> = {};
     KINETIX_JOINTS.forEach((j) => {
@@ -1140,10 +1658,17 @@ export const Robot3DViewer: React.FC<Robot3DViewerProps> = ({
     });
     setJointAnglesDeg(nextAngles);
     setSelectedJointId('j1');
+    setHoveredJointId(null);
     if (onSelectPlatformId) {
       onSelectPlatformId(nextModel);
     }
   };
+
+  // Display hovered joint telemetry in HUD when hovering, otherwise selected joint
+  const inspectedJointSpec = useMemo(() => {
+    const targetId = hoveredJointId || selectedJointId;
+    return activeJoints.find((j) => j.id === targetId) || activeJoints[0];
+  }, [activeJoints, hoveredJointId, selectedJointId]);
 
   const selectedJointSpec = useMemo(
     () => activeJoints.find((j) => j.id === selectedJointId) || activeJoints[0],
@@ -1151,6 +1676,19 @@ export const Robot3DViewer: React.FC<Robot3DViewerProps> = ({
   );
 
   const currentJointAngle = jointAnglesDeg[selectedJointSpec.id] ?? 0;
+  const inspectedJointAngle = jointAnglesDeg[inspectedJointSpec.id] ?? 0;
+
+  // Normalize current angle to [0%, 100%] of the joint's mechanical travel range
+  const limitRangePct = useMemo(() => {
+    const span = inspectedJointSpec.maxDeg - inspectedJointSpec.minDeg;
+    if (span <= 0) return 50;
+    return Math.min(
+      100,
+      Math.max(0, ((inspectedJointAngle - inspectedJointSpec.minDeg) / span) * 100)
+    );
+  }, [inspectedJointSpec, inspectedJointAngle]);
+
+  const showTechnicalOverlays = isModelHovered || hoveredJointId !== null || pinAxesAndLimits;
 
   const handleResetPoseAndCamera = () => {
     const nextAngles: Record<string, number> = {};
@@ -1169,30 +1707,74 @@ export const Robot3DViewer: React.FC<Robot3DViewerProps> = ({
         compactHeight ? 'h-[480px] sm:h-[540px]' : 'h-[540px] sm:h-[620px]'
       }`}
     >
-      {/* Top-Left Minimal Spec & Selected Joint Telemetry Badge (Solid surface, no backdrop-blur over WebGL) */}
+      {/* Top-Left Minimal Spec, Coordinate Axes Legend & Joint Limit Telemetry Badge */}
       <div className="pointer-events-none absolute top-3.5 left-3.5 right-3.5 z-10 flex flex-wrap items-start justify-between gap-2">
-        <div className="pointer-events-auto p-3 rounded-xl bg-[#090D18] border border-slate-800 space-y-1 max-w-xs sm:max-w-md">
-          <div className="flex items-center gap-2 text-[11px] font-mono text-cyan-400">
-            <Box className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
-            <span className="uppercase tracking-wider font-semibold">
-              3D MECHANICAL JOINT INSPECTOR //{' '}
-              {modelId === 'kinetix-7-arm' ? 'KINETIX-7 ARM' : 'OHM-X1 HUMANOID'}
+        <div className="pointer-events-auto p-3 rounded-xl bg-[#090D18] border border-slate-800 space-y-1.5 max-w-xs sm:max-w-md">
+          <div className="flex items-center justify-between gap-2 text-[11px] font-mono text-cyan-400">
+            <div className="flex items-center gap-1.5">
+              <Box className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
+              <span className="uppercase tracking-wider font-semibold">
+                {hoveredJointId ? 'HOVER INSPECTING // ' : '3D JOINT INSPECTOR // '}
+                {modelId === 'kinetix-7-arm' ? 'KINETIX-7 ARM' : 'OHM-X1 HUMANOID'}
+              </span>
+            </div>
+            {/* Coordinate Frame Legend Pills (X, Y, Z) */}
+            <div className="flex items-center gap-1 text-[10px] font-mono">
+              <span className="px-1.5 py-0.5 rounded bg-red-950/90 border border-red-500/40 text-red-400 font-bold">
+                X
+              </span>
+              <span className="px-1.5 py-0.5 rounded bg-emerald-950/90 border border-emerald-500/40 text-emerald-400 font-bold">
+                Y
+              </span>
+              <span className="px-1.5 py-0.5 rounded bg-sky-950/90 border border-sky-500/40 text-sky-300 font-bold">
+                Z
+              </span>
+            </div>
+          </div>
+
+          <div className="text-xs sm:text-sm font-bold text-white font-display flex items-center justify-between gap-2">
+            <span className="truncate">{inspectedJointSpec.name}</span>
+            <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-900 border border-slate-700 text-cyan-300 shrink-0">
+              AXIS: {inspectedJointSpec.rotationAxis}
             </span>
           </div>
-          <div className="text-xs sm:text-sm font-bold text-white font-display">
-            {selectedJointSpec.name}
-          </div>
+
           <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[11px] font-mono tabular-nums text-slate-300">
             <span>
-              Actuator: <strong className="text-cyan-300">{selectedJointSpec.actuator}</strong>
+              Actuator: <strong className="text-cyan-300">{inspectedJointSpec.actuator}</strong>
             </span>
             <span>
-              Torque: <strong className="text-amber-300">{selectedJointSpec.peakTorque}</strong>
+              Torque: <strong className="text-amber-300">{inspectedJointSpec.peakTorque}</strong>
             </span>
             <span>
               R_φ:{' '}
-              <strong className="text-emerald-400">{selectedJointSpec.statorResistance}</strong>
+              <strong className="text-emerald-400">{inspectedJointSpec.statorResistance}</strong>
             </span>
+          </div>
+
+          {/* Joint Limit Envelope Visualizer Bar */}
+          <div className="pt-1 border-t border-slate-800/90 space-y-1">
+            <div className="flex items-center justify-between text-[10px] font-mono tabular-nums">
+              <span className="text-amber-400">
+                MIN: {inspectedJointSpec.minDeg}°
+              </span>
+              <span className="text-slate-300">
+                TRAVEL ENVELOPE •{' '}
+                <strong className="text-emerald-400">θ = {inspectedJointAngle}°</strong>
+              </span>
+              <span className="text-amber-400">
+                MAX: +{inspectedJointSpec.maxDeg}°
+              </span>
+            </div>
+            <div className="relative h-1.5 w-full rounded-full bg-slate-900 border border-slate-800 overflow-hidden">
+              {/* 0° Center Tick */}
+              <div className="absolute left-1/2 top-0 bottom-0 w-px bg-slate-600" />
+              {/* Current Angle Marker */}
+              <div
+                className="h-full bg-gradient-to-r from-cyan-500 to-emerald-400 transition-all duration-150"
+                style={{ width: `${limitRangePct}%` }}
+              />
+            </div>
           </div>
         </div>
 
@@ -1282,7 +1864,12 @@ export const Robot3DViewer: React.FC<Robot3DViewerProps> = ({
           <Kinetix7ArmModel
             modelId={modelId}
             selectedJointId={selectedJointId}
+            hoveredJointId={hoveredJointId}
             onSelectJoint={setSelectedJointId}
+            onHoverJoint={setHoveredJointId}
+            onModelHoverChange={setIsModelHovered}
+            showTechnicalOverlays={showTechnicalOverlays}
+            jointSpecsMap={jointSpecsMap}
             jointAnglesDeg={jointAnglesDeg}
             autoAnimate={autoAnimate}
             explodedPct={explodedPct}
@@ -1292,7 +1879,12 @@ export const Robot3DViewer: React.FC<Robot3DViewerProps> = ({
           <OhmX1HumanoidModel
             modelId={modelId}
             selectedJointId={selectedJointId}
+            hoveredJointId={hoveredJointId}
             onSelectJoint={setSelectedJointId}
+            onHoverJoint={setHoveredJointId}
+            onModelHoverChange={setIsModelHovered}
+            showTechnicalOverlays={showTechnicalOverlays}
+            jointSpecsMap={jointSpecsMap}
             jointAnglesDeg={jointAnglesDeg}
             autoAnimate={autoAnimate}
             explodedPct={explodedPct}
@@ -1323,7 +1915,7 @@ export const Robot3DViewer: React.FC<Robot3DViewerProps> = ({
             {dockCollapsed ? (
               <>
                 <ChevronUp className="w-3.5 h-3.5 text-cyan-400" aria-hidden="true" />
-                <span>Show 3D Joint Controls (Drag to Rotate • Scroll to Zoom)</span>
+                <span>Show 3D Joint Controls (Hover Robot for XYZ Axes & Joint Limits)</span>
               </>
             ) : (
               <>
@@ -1350,6 +1942,8 @@ export const Robot3DViewer: React.FC<Robot3DViewerProps> = ({
                       key={j.id}
                       type="button"
                       onClick={() => setSelectedJointId(j.id)}
+                      onMouseEnter={() => setHoveredJointId(j.id)}
+                      onMouseLeave={() => setHoveredJointId(null)}
                       aria-pressed={active}
                       className={`px-2.5 py-1 rounded-lg text-[11px] font-mono transition-colors cursor-pointer ${
                         active
@@ -1363,7 +1957,22 @@ export const Robot3DViewer: React.FC<Robot3DViewerProps> = ({
                 })}
               </div>
 
-              <div className="flex items-center gap-1.5">
+              <div className="flex flex-wrap items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => setPinAxesAndLimits((prev) => !prev)}
+                  aria-pressed={pinAxesAndLimits}
+                  className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-mono border cursor-pointer ${
+                    pinAxesAndLimits || showTechnicalOverlays
+                      ? 'bg-cyan-950 border-cyan-500/50 text-cyan-300'
+                      : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-white'
+                  }`}
+                  title="Pin 3D Coordinate Axes (X, Y, Z) and Joint Limit Visualizers ON or auto-show on hover"
+                >
+                  <Compass className="w-3 h-3 text-cyan-400" aria-hidden="true" />
+                  <span>{pinAxesAndLimits ? 'XYZ & Limits: PINNED' : 'XYZ & Limits: HOVER'}</span>
+                </button>
+
                 <button
                   type="button"
                   onClick={() => setAutoAnimate((prev) => !prev)}
@@ -1414,7 +2023,10 @@ export const Robot3DViewer: React.FC<Robot3DViewerProps> = ({
                 <div className="flex justify-between text-[11px] font-mono tabular-nums mb-1">
                   <label htmlFor={angleSliderId} className="text-slate-300 flex items-center gap-1">
                     <Sliders className="w-3 h-3 text-cyan-400" aria-hidden="true" />
-                    <span>{selectedJointSpec.shortLabel.toUpperCase()} ANGLE</span>
+                    <span>
+                      {selectedJointSpec.shortLabel.toUpperCase()} ({selectedJointSpec.minDeg}° to +
+                      {selectedJointSpec.maxDeg}°)
+                    </span>
                   </label>
                   <span className="text-cyan-300 font-bold">{currentJointAngle}°</span>
                 </div>
